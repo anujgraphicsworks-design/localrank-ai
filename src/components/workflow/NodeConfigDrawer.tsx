@@ -24,7 +24,28 @@ export function NodeConfigDrawer({
 
   const definition = NODE_REGISTRY[node.data.type] || NODE_REGISTRY.google_maps_search;
   const [label, setLabel] = React.useState(node.data.label);
-  const [config, setConfig] = React.useState<Record<string, any>>(node.data.config || {});
+  const [config, setConfig] = React.useState<Record<string, any>>(() => {
+    return {
+      query: node.data.config?.query ?? (node.data.type === 'google_maps_search' ? 'Emergency Dentists in Austin, TX' : ''),
+      location: node.data.config?.location ?? (node.data.type === 'google_maps_search' ? 'Austin, TX' : ''),
+      maxResults: node.data.config?.maxResults ?? 50,
+      radiusKm: node.data.config?.radiusKm ?? 10,
+      senderName: node.data.config?.senderName ?? 'Anuj',
+      ...node.data.config
+    };
+  });
+
+  React.useEffect(() => {
+    setLabel(node.data.label);
+    setConfig({
+      query: node.data.config?.query ?? (node.data.type === 'google_maps_search' ? 'Emergency Dentists in Austin, TX' : ''),
+      location: node.data.config?.location ?? (node.data.type === 'google_maps_search' ? 'Austin, TX' : ''),
+      maxResults: node.data.config?.maxResults ?? 50,
+      radiusKm: node.data.config?.radiusKm ?? 10,
+      senderName: node.data.config?.senderName ?? 'Anuj',
+      ...node.data.config
+    });
+  }, [node.id, node.data.config, node.data.label, node.data.type]);
 
   const handleChange = (key: string, value: any) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -70,7 +91,7 @@ export function NodeConfigDrawer({
               <label className="block text-[11px] font-medium text-zinc-300 mb-1">Search Query</label>
               <input
                 type="text"
-                value={config.query || 'Emergency Dentists in Austin, TX'}
+                value={config.query ?? ''}
                 onChange={(e) => handleChange('query', e.target.value)}
                 placeholder="e.g. Emergency Dentists in Austin, TX"
                 className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:outline-none focus:border-emerald-500 text-xs"
@@ -80,8 +101,9 @@ export function NodeConfigDrawer({
               <label className="block text-[11px] font-medium text-zinc-300 mb-1">Location / City</label>
               <input
                 type="text"
-                value={config.location || 'Austin, TX'}
+                value={config.location ?? ''}
                 onChange={(e) => handleChange('location', e.target.value)}
+                placeholder="e.g. Austin, TX"
                 className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:outline-none focus:border-emerald-500 text-xs"
               />
             </div>
@@ -89,7 +111,7 @@ export function NodeConfigDrawer({
               <div>
                 <label className="block text-[11px] font-medium text-zinc-300 mb-1">Max Results</label>
                 <select
-                  value={config.maxResults || 50}
+                  value={config.maxResults ?? 50}
                   onChange={(e) => handleChange('maxResults', Number(e.target.value))}
                   className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:outline-none focus:border-emerald-500 text-xs"
                 >
@@ -102,7 +124,7 @@ export function NodeConfigDrawer({
               <div>
                 <label className="block text-[11px] font-medium text-zinc-300 mb-1">Radius (km)</label>
                 <select
-                  value={config.radiusKm || 10}
+                  value={config.radiusKm ?? 10}
                   onChange={(e) => handleChange('radiusKm', Number(e.target.value))}
                   className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:outline-none focus:border-emerald-500 text-xs"
                 >
@@ -123,8 +145,9 @@ export function NodeConfigDrawer({
               <label className="block text-[11px] font-medium text-zinc-300 mb-1">Sender Name</label>
               <input
                 type="text"
-                value={config.senderName || 'Anuj'}
+                value={config.senderName ?? ''}
                 onChange={(e) => handleChange('senderName', e.target.value)}
+                placeholder="e.g. Your Name"
                 className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:outline-none focus:border-emerald-500 text-xs"
               />
             </div>
@@ -148,7 +171,7 @@ export function NodeConfigDrawer({
             <label className="block text-[11px] font-medium text-zinc-300 mb-1">Cardinal Grid Size</label>
             <input
               type="number"
-              value={config.gridSize || 5}
+              value={config.gridSize ?? 5}
               disabled
               className="w-full px-3 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-zinc-400 text-xs cursor-not-allowed"
             />
