@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { BusinessLead, LeadStatus } from '@/lib/types';
 import { LeadDetailModal } from './LeadDetailModal';
-import { deleteLead } from '@/lib/firebase/db';
+import { deleteLead, getLeads } from '@/lib/firebase/db';
 
 interface LeadTableProps {
   leads: BusinessLead[];
@@ -37,6 +37,11 @@ export function LeadTable({ leads }: LeadTableProps) {
 
   useEffect(() => {
     setLeadList(leads);
+    getLeads().then((clientLeads) => {
+      if (clientLeads && clientLeads.length > 0) {
+        setLeadList(clientLeads);
+      }
+    });
   }, [leads]);
 
   // Filter logic
