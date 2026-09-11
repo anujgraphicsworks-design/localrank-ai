@@ -1,0 +1,10 @@
+{
+  "googleMapsApiKey": "",
+  "googleMapsStatus": "not_configured",
+  "geminiApiKey": "",
+  "geminiStatus": "not_configured",
+  "enableDemoMode": true,
+  "maxScrapeConcurrency": 5,
+  "requestTimeoutSeconds": 15,
+  "defaultSenderName": "Anuj"
+}

@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+:root {
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --card: #121215;
+  --card-foreground: #f4f4f5;
+  --border: #27272a;
+  --accent: #10b981;
+  --accent-foreground: #ffffff;
+}
+
+body {
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(18, 18, 22, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-subtle {
+  background: rgba(24, 24, 28, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* React Flow Theming for Dark Mode */
+.react-flow__renderer {
+  background-color: #0c0d10 !important;
+}
+
+.react-flow__edge-path {
+  stroke: #10b981 !important;
+  stroke-width: 2.5 !important;
+}
+
+.react-flow__connection-path {
+  stroke: #10b981 !important;
+  stroke-width: 2 !important;
+}
+
+.react-flow__handle {
+  width: 10px !important;
+  height: 10px !important;
+  background: #10b981 !important;
+  border: 2px solid #09090b !important;
+  border-radius: 50% !important;
+}
+
+.react-flow__controls {
+  background: #18181b !important;
+  border: 1px solid #27272a !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background: #18181b !important;
+  border-bottom: 1px solid #27272a !important;
+  color: #a1a1aa !important;
+  fill: #a1a1aa !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #27272a !important;
+  color: #f4f4f5 !important;
+  fill: #f4f4f5 !important;
+}
+
+.react-flow__minimap {
+  background-color: #121215 !important;
+  border: 1px solid #27272a !important;
+  border-radius: 8px !important;
+}
+
+/* Pulse animation for running state */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.55);
+  }
+}
+
+.node-running {
+  animation: glowPulse 2s infinite ease-in-out;
+}

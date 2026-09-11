@@ -1,0 +1,761 @@
+import { BusinessLead, Workflow, WorkflowExecution, IntegrationSettings } from '../types';
+
+export const INITIAL_SETTINGS: IntegrationSettings = {
+  googleMapsApiKey: '',
+  googleMapsStatus: 'not_configured',
+  geminiApiKey: '',
+  geminiStatus: 'not_configured',
+  enableDemoMode: true,
+  maxScrapeConcurrency: 5,
+  requestTimeoutSeconds: 15,
+  defaultSenderName: 'Anuj'
+};
+
+export const INITIAL_LEADS: BusinessLead[] = [
+  {
+    id: 'lead-austin-1',
+    workspaceId: 'ws-default',
+    isDemo: true,
+    businessName: 'Apex Dental Care',
+    category: 'Emergency Dental Service',
+    primaryService: 'emergency dentists',
+    address: '1400 S Congress Ave Suite B-200',
+    city: 'Austin',
+    state: 'TX',
+    postalCode: '78704',
+    country: 'USA',
+    googleMapsUrl: 'https://maps.google.com/?cid=1029384756',
+    website: 'https://apexdentalcare-austin-demo.com',
+    hasWebsite: true,
+    rating: 4.3,
+    reviewsCount: 38,
+    businessStatus: 'OPERATIONAL',
+    photosCount: 14,
+    currentRank: 8,
+    rankingGrid: {
+      keyword: 'emergency dentist',
+      searchCity: 'Austin, TX',
+      observedAt: '2026-09-11T12:00:00Z',
+      centerRank: 8,
+      northRank: 6,
+      southRank: 11,
+      eastRank: 7,
+      westRank: 9,
+      averageRank: 8.2,
+      medianRank: 8,
+      bestRank: 6,
+      worstRank: 11,
+      threePackAppearances: 0,
+      visibilityPercentage: 18.5,
+      disclaimer: 'OBSERVED LOCAL SEARCH DATA — NOT A GUARANTEED UNIVERSAL RANKING',
+      points: [
+        { point: 'Center', label: 'Downtown Austin', lat: 30.2672, lng: -97.7431, observedRank: 8, in3Pack: false, topCompetitors: [{ name: 'Austin Dental Works', rank: 1, rating: 4.9, reviews: 215 }, { name: 'Lone Star Urgent Dental', rank: 2, rating: 4.8, reviews: 184 }, { name: 'South Congress Dental 24/7', rank: 3, rating: 4.7, reviews: 142 }] },
+        { point: 'North', label: 'North Loop / Mueller', lat: 30.3072, lng: -97.7131, observedRank: 6, in3Pack: false, topCompetitors: [{ name: 'Mueller Emergency Smiles', rank: 1, rating: 4.9, reviews: 198 }, { name: 'North Austin Smiles', rank: 2, rating: 4.8, reviews: 160 }, { name: 'Lone Star Urgent Dental', rank: 3, rating: 4.8, reviews: 184 }] },
+        { point: 'South', label: 'South Lamar / Barton', lat: 30.2372, lng: -97.7831, observedRank: 11, in3Pack: false, topCompetitors: [{ name: 'South Austin Dental Co', rank: 1, rating: 4.9, reviews: 310 }, { name: 'Barton Creek Smiles', rank: 2, rating: 4.7, reviews: 130 }, { name: 'Austin Dental Works', rank: 3, rating: 4.9, reviews: 215 }] },
+        { point: 'East', label: 'East Austin / Plaza', lat: 30.2672, lng: -97.7031, observedRank: 7, in3Pack: false, topCompetitors: [{ name: 'Eastside Dental Care', rank: 1, rating: 4.9, reviews: 175 }, { name: 'Austin Dental Works', rank: 2, rating: 4.9, reviews: 215 }, { name: 'Lone Star Urgent Dental', rank: 3, rating: 4.8, reviews: 184 }] },
+        { point: 'West', label: 'Westlake Hills', lat: 30.2772, lng: -97.8031, observedRank: 9, in3Pack: false, topCompetitors: [{ name: 'Westlake Emergency Dental', rank: 1, rating: 5.0, reviews: 240 }, { name: 'Austin Dental Works', rank: 2, rating: 4.9, reviews: 215 }, { name: 'Hill Country Urgent Teeth', rank: 3, rating: 4.8, reviews: 155 }] }
+      ]
+    },
+    competitorComparison: {
+      targetBusinessName: 'Apex Dental Care',
+      targetRank: 8,
+      targetReviews: 38,
+      targetRating: 4.3,
+      top3Competitors: [
+        { id: 'comp-1', businessName: 'Austin Dental Works', rank: 1, rating: 4.9, reviewsCount: 215, hasWebsite: true, websiteUrl: 'https://austindentalworks.com', primaryCategory: 'Emergency Dental Service', hasDedicatedLandingPage: true, hasLocalSchema: true, keyAdvantage: '215 reviews, dedicated 24/7 emergency landing page, schema marked up with emergency hours' },
+        { id: 'comp-2', businessName: 'Lone Star Urgent Dental', rank: 2, rating: 4.8, reviewsCount: 184, hasWebsite: true, websiteUrl: 'https://lonestarurgentdental.com', primaryCategory: 'Emergency Dentist', hasDedicatedLandingPage: true, hasLocalSchema: true, keyAdvantage: 'High monthly review velocity (14/mo), instant online appointment booking widget' },
+        { id: 'comp-3', businessName: 'South Congress Dental 24/7', rank: 3, rating: 4.7, reviewsCount: 142, hasWebsite: true, websiteUrl: 'https://socodental.com', primaryCategory: 'Dental Clinic', hasDedicatedLandingPage: true, hasLocalSchema: false, keyAdvantage: 'Direct geo-targeted keyword in GMB title and 142 reviews' }
+      ],
+      reviewDeltaToTop3Avg: 142,
+      ratingDeltaToTop3Avg: 0.5,
+      primaryGap: 'Review deficit of ~142 reviews & missing dedicated emergency dentist landing page.'
+    },
+    gbpAudit: {
+      score: 64,
+      primaryCategory: 'Emergency Dental Service',
+      secondaryCategories: ['Dentist', 'Cosmetic Dentist'],
+      hasDescription: true,
+      descriptionKeywordOptimized: false,
+      reviewCount: 38,
+      rating: 4.3,
+      reviewRecencyDays: 48,
+      reviewResponseRatePercent: 22,
+      photosCount: 14,
+      hasOpeningHours: true,
+      hasSpecialHours: false,
+      hasBookingUrl: false,
+      strengths: ['Primary category matches search intent', 'Operational hours clearly listed', 'Clean physical address verification'],
+      weaknesses: ['Review response rate is only 22%', 'No review posted in last 48 days', 'Missing emergency booking appointment URL in GMB profile'],
+      missingOpportunities: ['Adding "Urgent Dental Care" and "Walk-in Dentist" secondary categories', 'Publishing weekly GMB updates with emergency FAQs', 'Automated post-appointment review request workflow'],
+      priorityFixes: ['Connect instant appointment booking URL', 'Reply to 8 unanswered negative/neutral reviews with keyword-rich resolution']
+    },
+    websiteAudit: {
+      hasWebsite: true,
+      url: 'https://apexdentalcare-austin-demo.com',
+      statusCode: 200,
+      ssl: true,
+      title: 'Apex Dental Care | Austin Dentist',
+      titleLength: 35,
+      metaDescription: 'Welcome to Apex Dental Care in Austin. We offer general family dentistry.',
+      metaDescLength: 72,
+      isMobileResponsive: true,
+      hasLeadCapture: false,
+      hasBookingWidget: false,
+      hasTapToCall: true,
+      hasSchema: false,
+      schemaTypes: [],
+      hasDedicatedServicePages: false,
+      hasLocationPages: false,
+      findings: [
+        'Missing dedicated Emergency Dentist landing page with targeted geo-terms.',
+        'Lacks LocalBusiness JSON-LD structured data with geo-coordinates and opening hours.',
+        'No automated appointment booking widget or instant web inquiry form.',
+        'Title tag lacks primary high-intent keyword "Emergency Dentist Austin".'
+      ],
+      scores: {
+        overall: 58,
+        technicalSeo: 74,
+        localSeo: 46,
+        content: 52,
+        conversion: 48,
+        mobileUx: 80,
+        trust: 60
+      }
+    },
+    opportunityScore: {
+      score: 78,
+      difficulty: 'Medium',
+      potential: 'High',
+      summary: 'Strong baseline presence sitting at #8. High conversion potential if review deficit is bridged and dedicated emergency landing page is deployed.',
+      factors: [
+        { factor: 'Observed Rank (#8)', impact: 'Close to 3-Pack boundary; moderate push required', weight: 30 },
+        { factor: 'Review Gap (-142 vs Top 3)', impact: 'Key bottleneck; requires automated post-visit SMS collection', weight: 25 },
+        { factor: 'Website Landing Page Gap', impact: 'Missing emergency page; easy high-impact win', weight: 25 },
+        { factor: 'Schema & Booking Deficit', impact: 'Quick technical deployment yields high local relevance boost', weight: 20 }
+      ],
+      disclaimer: 'Opportunity score based on observed competitive gap. Not a ranking guarantee.'
+    },
+    actionPlan: {
+      overallStrategy: 'Execute 3-phase sprint focusing on GMB review velocity acceleration, dedicated emergency service landing page with LocalBusiness schema, and automated missed-call lead capture.',
+      practicalTimelineDays: 60,
+      timelineLabel: '45-60 Days (Citation Sync & Review Velocity Push)',
+      confidence: 'High',
+      phases: [
+        {
+          phase: 1,
+          name: 'Phase 1: GMB Foundation & Review Acceleration (Days 1–15)',
+          daysRange: 'Days 1-15',
+          tasks: [
+            { priority: 'P0', task: 'Audit and update GMB primary category to "Emergency Dental Service" and inject 4 secondary categories.', impact: 'High', difficulty: 'Low', estimatedEffort: '1-2 hours' },
+            { priority: 'P0', task: 'Deploy automated SMS review request workflow to past 60 days of patients.', impact: 'High', difficulty: 'Medium', estimatedEffort: '3-4 hours' },
+            { priority: 'P1', task: 'Upload 20 geotagged premises and team photos with EXIF coordinates.', impact: 'Medium', difficulty: 'Low', estimatedEffort: '2 hours' }
+          ]
+        },
+        {
+          phase: 2,
+          name: 'Phase 2: Local Authority & Landing Page Dominance (Days 16–35)',
+          daysRange: 'Days 16-35',
+          tasks: [
+            { priority: 'P0', task: 'Build & deploy dedicated /emergency-dentist-austin landing page with emergency FAQs.', impact: 'High', difficulty: 'Medium', estimatedEffort: '6-8 hours' },
+            { priority: 'P1', task: 'Inject LocalBusiness & MedicalBusiness JSON-LD schema with exact latitude/longitude.', impact: 'High', difficulty: 'Low', estimatedEffort: '2 hours' },
+            { priority: 'P1', task: 'Sync NAP citations across top 40 healthcare and local directories.', impact: 'Medium', difficulty: 'Medium', estimatedEffort: '4 hours' }
+          ]
+        },
+        {
+          phase: 3,
+          name: 'Phase 3: Automated Lead Capture & 3-Pack Domination (Days 36–60)',
+          daysRange: 'Days 36-60',
+          tasks: [
+            { priority: 'P0', task: 'Install automated Missed-Call Text-Back: instantly text emergency callers within 30 seconds.', impact: 'High', difficulty: 'Low', estimatedEffort: '2 hours' },
+            { priority: 'P1', task: 'Embed 24/7 urgent appointment booking calendar directly on homepage hero.', impact: 'High', difficulty: 'Medium', estimatedEffort: '3 hours' },
+            { priority: 'P2', task: 'Monitor ranking grid weekly to verify 3-pack expansion across Downtown and South Lamar.', impact: 'Medium', difficulty: 'Low', estimatedEffort: 'Ongoing' }
+          ]
+        }
+      ]
+    },
+    evidence: [
+      { id: 'ev-1', finding: 'Observed at Rank #8 on Google Maps for "emergency dentist in Austin"', category: 'Ranking', source: 'Google Maps Search Results', sourceUrl: 'https://maps.google.com/?q=emergency+dentist+in+Austin', observedAt: '2026-09-11T12:00:00Z', confidence: 'High', snippet: 'Position #8 in local 20-feed behind Austin Dental Works (#1) and Lone Star Urgent Dental (#2).' },
+      { id: 'ev-2', finding: 'Website lacks dedicated Emergency Dentist service page or emergency landing URL', category: 'Website', source: 'Website Crawler Inspection', sourceUrl: 'https://apexdentalcare-austin-demo.com/sitemap.xml', observedAt: '2026-09-11T12:01:00Z', confidence: 'High', snippet: 'Sitemap contains only /services, /about, /contact. No URL targeting emergency dental care.' },
+      { id: 'ev-3', finding: 'Missing LocalBusiness / MedicalBusiness JSON-LD structured data', category: 'Website', source: 'HTML DOM Schema Check', sourceUrl: 'https://apexdentalcare-austin-demo.com', observedAt: '2026-09-11T12:01:10Z', confidence: 'High', snippet: 'No script tag with type="application/ld+json" detected on homepage.' },
+      { id: 'ev-4', finding: 'Zero public review replies in past 60 days on Google Business Profile', category: 'GBP', source: 'GBP Public Profile Feed', observedAt: '2026-09-11T12:01:25Z', confidence: 'High', snippet: 'Last review posted 48 days ago with no owner response.' }
+    ],
+    contact: {
+      decisionMakerName: 'Dr. Dave Miller',
+      firstName: 'Dave',
+      role: 'Lead Dentist & Founder',
+      primaryEmail: 'dave@apexdentalcare-austin-demo.com',
+      emailFound: true,
+      emailSource: 'Business Website Contact Page',
+      confidence: 'High',
+      websiteUrl: 'https://apexdentalcare-austin-demo.com',
+      instagram: 'https://instagram.com/apexdentalaustin',
+      facebook: 'https://facebook.com/apexdentalcareatx',
+      linkedin: 'https://linkedin.com/in/dr-dave-miller-dental',
+      outreachChannel: 'Email'
+    },
+    coldEmail: {
+      id: 'email-austin-1',
+      subjectRecommended: 'Dave, check Apex Dental Care on Google rn',
+      subjectAlt1: 'Apex Dental Care’s Google Maps spot',
+      subjectAlt2: 'Quick Google Maps finding for Apex Dental Care',
+      body: `Hey Dave,
+
+Came across Apex Dental Care while searching for emergency dentists in Austin last week.
+
+While looking into it, I noticed you're sitting at #8 on Google Maps, meaning the top 3 spots are taking virtually all the inbound calls, clicks, and bookings.
+
+Doing the math, being outside the 3-pack is probably costing you dozens of high-value leads every single month.
+
+So, I put together an action plan to get Apex Dental Care into the Top 3 on Google Maps, plus built out automated lead-capture workflows so you instantly lock in leads and stop wasting hours on repetitive follow-ups and manual tasks.
+
+It's yours. Already mapped out & ready to go.
+
+Reply and I'll hand it over.
+
+Best,
+
+Anuj`,
+      wordCount: 88,
+      isUnder100Words: true,
+      targetRank: 8,
+      recipientEmail: 'dave@apexdentalcare-austin-demo.com',
+      recipientName: 'Dave',
+      status: 'Approved',
+      validation: {
+        isRealRank: true,
+        isRealBusinessName: true,
+        isUnder100Words: true,
+        noFabricatedClaims: true,
+        tailoredToTop3Status: true
+      }
+    },
+    leadStatus: 'Ready to Contact',
+    researchNotes: 'High priority lead. Clean decision-maker match (Dr. Dave Miller). Verified email and active Instagram account.',
+    createdAt: '2026-09-11T12:02:00Z',
+    updatedAt: '2026-09-11T12:02:00Z'
+  },
+  {
+    id: 'lead-austin-2',
+    workspaceId: 'ws-default',
+    isDemo: true,
+    businessName: 'Austin Emergency Smiles 24/7',
+    category: 'Urgent Care Dentist',
+    primaryService: 'emergency dentists',
+    address: '2210 E 7th St',
+    city: 'Austin',
+    state: 'TX',
+    postalCode: '78702',
+    country: 'USA',
+    googleMapsUrl: 'https://maps.google.com/?cid=9988776655',
+    website: undefined,
+    hasWebsite: false,
+    rating: 4.6,
+    reviewsCount: 52,
+    businessStatus: 'OPERATIONAL',
+    photosCount: 6,
+    currentRank: 12,
+    rankingGrid: {
+      keyword: 'emergency dentist',
+      searchCity: 'Austin, TX',
+      observedAt: '2026-09-11T12:00:00Z',
+      centerRank: 12,
+      northRank: 14,
+      southRank: 10,
+      eastRank: 9,
+      westRank: 15,
+      averageRank: 12.0,
+      medianRank: 12,
+      bestRank: 9,
+      worstRank: 15,
+      threePackAppearances: 0,
+      visibilityPercentage: 8.0,
+      disclaimer: 'OBSERVED LOCAL SEARCH DATA — NOT A GUARANTEED UNIVERSAL RANKING',
+      points: [
+        { point: 'Center', label: 'Downtown Austin', lat: 30.2672, lng: -97.7431, observedRank: 12, in3Pack: false, topCompetitors: [] },
+        { point: 'North', label: 'North Loop', lat: 30.3072, lng: -97.7131, observedRank: 14, in3Pack: false, topCompetitors: [] },
+        { point: 'South', label: 'South Lamar', lat: 30.2372, lng: -97.7831, observedRank: 10, in3Pack: false, topCompetitors: [] },
+        { point: 'East', label: 'East Austin', lat: 30.2672, lng: -97.7031, observedRank: 9, in3Pack: false, topCompetitors: [] },
+        { point: 'West', label: 'Westlake', lat: 30.2772, lng: -97.8031, observedRank: 15, in3Pack: false, topCompetitors: [] }
+      ]
+    },
+    gbpAudit: {
+      score: 48,
+      primaryCategory: 'Urgent Care Dentist',
+      secondaryCategories: [],
+      hasDescription: false,
+      descriptionKeywordOptimized: false,
+      reviewCount: 52,
+      rating: 4.6,
+      reviewRecencyDays: 85,
+      reviewResponseRatePercent: 0,
+      photosCount: 6,
+      hasOpeningHours: true,
+      hasSpecialHours: false,
+      hasBookingUrl: false,
+      strengths: ['Solid 4.6 star average rating', 'Open 24/7 hours listed'],
+      weaknesses: ['No linked official website', 'Zero owner replies to reviews', 'No secondary categories'],
+      missingOpportunities: ['Deploy high-speed one-page mobile site', 'Set up automated call back'],
+      priorityFixes: ['Connect dedicated website to Google Business Profile']
+    },
+    websiteAudit: {
+      hasWebsite: false,
+      ssl: false,
+      title: '',
+      titleLength: 0,
+      metaDescription: '',
+      metaDescLength: 0,
+      isMobileResponsive: false,
+      hasLeadCapture: false,
+      hasBookingWidget: false,
+      hasTapToCall: false,
+      hasSchema: false,
+      schemaTypes: [],
+      hasDedicatedServicePages: false,
+      hasLocationPages: false,
+      findings: [
+        'NO WEBSITE LINKED to Google Business Profile.',
+        'Severe domain authority penalty — unable to anchor local keyword schema.',
+        'Zero automated digital capture for inbound local search traffic.'
+      ],
+      scores: {
+        overall: 0,
+        technicalSeo: 0,
+        localSeo: 0,
+        content: 0,
+        conversion: 0,
+        mobileUx: 0,
+        trust: 20
+      }
+    },
+    opportunityScore: {
+      score: 86,
+      difficulty: 'Medium',
+      potential: 'High',
+      summary: 'Tremendous upside. Business already has 52 reviews at 4.6 stars despite having NO website. Adding a dedicated local site and schema will yield dramatic ranking gains.',
+      factors: [
+        { factor: 'Missing Website Anchor', impact: 'Immediate massive ranking and conversion boost once built', weight: 40 },
+        { factor: 'High Organic Rating (4.6★)', impact: 'Trust foundation already established', weight: 30 },
+        { factor: 'Sitting at #12 without site', impact: 'Low-hanging fruit for 3-pack entry', weight: 30 }
+      ],
+      disclaimer: 'Opportunity score based on observed competitive gap. Not a ranking guarantee.'
+    },
+    actionPlan: {
+      overallStrategy: 'Launch a rapid-deployment mobile emergency dental landing page with tap-to-call, missed-call SMS automation, and link to GMB to trigger rapid algorithmic re-indexing.',
+      practicalTimelineDays: 45,
+      timelineLabel: '30-45 Days (Website Launch & GMB Re-indexing)',
+      confidence: 'High',
+      phases: [
+        {
+          phase: 1,
+          name: 'Phase 1: Digital Presence Foundation (Days 1–10)',
+          daysRange: 'Days 1-10',
+          tasks: [
+            { priority: 'P0', task: 'Build fast mobile-first emergency landing page with LocalBusiness schema and instant click-to-call button.', impact: 'High', difficulty: 'Low', estimatedEffort: '4 hours' },
+            { priority: 'P0', task: 'Link verified website URL to Google Business Profile.', impact: 'High', difficulty: 'Low', estimatedEffort: '15 mins' }
+          ]
+        },
+        {
+          phase: 2,
+          name: 'Phase 2: Citation Sync & Review Sprint (Days 11–25)',
+          daysRange: 'Days 11-25',
+          tasks: [
+            { priority: 'P1', task: 'Build NAP citations on Yelp, Bing Places, Apple Maps, Healthgrades.', impact: 'Medium', difficulty: 'Medium', estimatedEffort: '3 hours' },
+            { priority: 'P0', task: 'Deploy automated review request SMS sequence to reach 75 reviews.', impact: 'High', difficulty: 'Medium', estimatedEffort: '2 hours' }
+          ]
+        },
+        {
+          phase: 3,
+          name: 'Phase 3: Automated Inbound Routing (Days 26–45)',
+          daysRange: 'Days 26-45',
+          tasks: [
+            { priority: 'P0', task: 'Activate 30-second missed-call text-back system for emergency after-hours callers.', impact: 'High', difficulty: 'Low', estimatedEffort: '2 hours' }
+          ]
+        }
+      ]
+    },
+    evidence: [
+      { id: 'ev-201', finding: 'Observed at Rank #12 for "emergency dentist Austin"', category: 'Ranking', source: 'Google Maps Search Results', observedAt: '2026-09-11T12:00:00Z', confidence: 'High' },
+      { id: 'ev-202', finding: 'No website URL connected on Google Maps listing', category: 'Website', source: 'Google Places API Record', observedAt: '2026-09-11T12:00:00Z', confidence: 'High' }
+    ],
+    contact: {
+      firstName: 'there',
+      role: 'Business Owner / Front Desk',
+      emailFound: false,
+      confidence: 'Low',
+      instagram: 'https://instagram.com/austinemergencysmiles',
+      facebook: 'https://facebook.com/austinemergencysmiles247',
+      outreachChannel: 'Instagram DM'
+    },
+    coldEmail: {
+      id: 'email-austin-2',
+      subjectRecommended: 'Check Austin Emergency Smiles 24/7 on Google rn',
+      subjectAlt1: 'Austin Emergency Smiles 24/7’s Google Maps spot',
+      subjectAlt2: 'Quick Google Maps finding for Austin Emergency Smiles 24/7',
+      body: `Hey there,
+
+Came across Austin Emergency Smiles 24/7 while searching for emergency dentists in Austin last week.
+
+While looking into it, I noticed you're sitting at #12 on Google Maps, meaning the top 3 spots are taking virtually all the inbound calls, clicks, and bookings.
+
+Doing the math, being outside the 3-pack is probably costing you dozens of high-value leads every single month.
+
+So, I put together an action plan to get Austin Emergency Smiles 24/7 into the Top 3 on Google Maps, plus built out automated lead-capture workflows so you instantly lock in leads and stop wasting hours on repetitive follow-ups and manual tasks.
+
+It's yours. Already mapped out & ready to go.
+
+Reply and I'll hand it over.
+
+Best,
+
+Anuj`,
+      wordCount: 88,
+      isUnder100Words: true,
+      targetRank: 12,
+      recipientName: 'there',
+      status: 'Draft',
+      validation: {
+        isRealRank: true,
+        isRealBusinessName: true,
+        isUnder100Words: true,
+        noFabricatedClaims: true,
+        tailoredToTop3Status: true
+      }
+    },
+    leadStatus: 'Researched',
+    researchNotes: 'No official website linked; reached out via verified Instagram handle.',
+    createdAt: '2026-09-11T12:02:00Z',
+    updatedAt: '2026-09-11T12:02:00Z'
+  },
+  {
+    id: 'lead-austin-3',
+    workspaceId: 'ws-default',
+    isDemo: true,
+    businessName: 'Austin Dental Works',
+    category: 'Emergency Dental Service',
+    primaryService: 'emergency dentists',
+    address: '4611 Burnet Rd',
+    city: 'Austin',
+    state: 'TX',
+    postalCode: '78756',
+    country: 'USA',
+    googleMapsUrl: 'https://maps.google.com/?cid=1122334455',
+    website: 'https://austindentalworks.com',
+    hasWebsite: true,
+    rating: 4.9,
+    reviewsCount: 215,
+    businessStatus: 'OPERATIONAL',
+    photosCount: 42,
+    currentRank: 1,
+    rankingGrid: {
+      keyword: 'emergency dentist',
+      searchCity: 'Austin, TX',
+      observedAt: '2026-09-11T12:00:00Z',
+      centerRank: 1,
+      northRank: 2,
+      southRank: 3,
+      eastRank: 2,
+      westRank: 2,
+      averageRank: 2.0,
+      medianRank: 2,
+      bestRank: 1,
+      worstRank: 3,
+      threePackAppearances: 5,
+      visibilityPercentage: 96.0,
+      disclaimer: 'OBSERVED LOCAL SEARCH DATA — NOT A GUARANTEED UNIVERSAL RANKING',
+      points: [
+        { point: 'Center', label: 'Downtown Austin', lat: 30.2672, lng: -97.7431, observedRank: 1, in3Pack: true, topCompetitors: [] },
+        { point: 'North', label: 'North Loop', lat: 30.3072, lng: -97.7131, observedRank: 2, in3Pack: true, topCompetitors: [] },
+        { point: 'South', label: 'South Lamar', lat: 30.2372, lng: -97.7831, observedRank: 3, in3Pack: true, topCompetitors: [] },
+        { point: 'East', label: 'East Austin', lat: 30.2672, lng: -97.7031, observedRank: 2, in3Pack: true, topCompetitors: [] },
+        { point: 'West', label: 'Westlake', lat: 30.2772, lng: -97.8031, observedRank: 2, in3Pack: true, topCompetitors: [] }
+      ]
+    },
+    gbpAudit: {
+      score: 94,
+      primaryCategory: 'Emergency Dental Service',
+      secondaryCategories: ['Dentist', 'Cosmetic Dentist', 'Dental Implants Periodontist'],
+      hasDescription: true,
+      descriptionKeywordOptimized: true,
+      reviewCount: 215,
+      rating: 4.9,
+      reviewRecencyDays: 2,
+      reviewResponseRatePercent: 95,
+      photosCount: 42,
+      hasOpeningHours: true,
+      hasSpecialHours: true,
+      hasBookingUrl: true,
+      strengths: ['Dominant 3-Pack presence in all 5 grid sectors', '215 reviews with 4.9 star rating', '95% review response rate'],
+      weaknesses: ['Competitors ramping up review velocity in South Austin sector'],
+      missingOpportunities: ['Automated missed-call lead capture to maximize conversion from #1 ranking'],
+      priorityFixes: ['Install instant Missed-Call Text-Back to prevent losing 15-25% of inbound calls']
+    },
+    websiteAudit: {
+      hasWebsite: true,
+      url: 'https://austindentalworks.com',
+      statusCode: 200,
+      ssl: true,
+      title: 'Emergency Dentist Austin | Austin Dental Works 24/7 Care',
+      titleLength: 56,
+      metaDescription: 'Need an emergency dentist in Austin? Austin Dental Works provides same-day urgent dental care, extractions, and root canals. Call now.',
+      metaDescLength: 142,
+      isMobileResponsive: true,
+      hasLeadCapture: true,
+      hasBookingWidget: true,
+      hasTapToCall: true,
+      hasSchema: true,
+      schemaTypes: ['EmergencyService', 'Dentist', 'LocalBusiness'],
+      hasDedicatedServicePages: true,
+      hasLocationPages: true,
+      findings: [
+        'Excellent technical and local SEO implementation.',
+        'Lacks automated missed-call instant text-back — prospective patients who call when lines are busy drop off to competitors #2 and #3.'
+      ],
+      scores: {
+        overall: 92,
+        technicalSeo: 95,
+        localSeo: 94,
+        content: 90,
+        conversion: 85,
+        mobileUx: 95,
+        trust: 96
+      }
+    },
+    opportunityScore: {
+      score: 62,
+      difficulty: 'Low',
+      potential: 'Medium',
+      summary: 'Already dominant at #1 rank. Angle is rank retention against aggressive competitors + automated missed-call text-back to capture dropped calls.',
+      factors: [
+        { factor: 'Rank #1 Leader', impact: 'Already dominates 3-Pack; focus is conversion capture', weight: 50 },
+        { factor: 'Lead Leakage Prevention', impact: 'Automating instant lead-capture recovers ~15 dropped calls/mo', weight: 50 }
+      ],
+      disclaimer: 'Opportunity score based on observed competitive gap. Not a ranking guarantee.'
+    },
+    actionPlan: {
+      overallStrategy: 'Defend #1 Google Maps spot against rising competitors while plugging conversion leaks with automated 60-second inbound response workflows.',
+      practicalTimelineDays: 30,
+      timelineLabel: '15-30 Days (Rank Retention & Conversion Maximization)',
+      confidence: 'High',
+      phases: [
+        {
+          phase: 1,
+          name: 'Phase 1: Inbound Lead Capture Lockdown (Days 1–15)',
+          daysRange: 'Days 1-15',
+          tasks: [
+            { priority: 'P0', task: 'Deploy automated Missed-Call Text-Back workflow to capture lost emergency patient calls within 30s.', impact: 'High', difficulty: 'Low', estimatedEffort: '2 hours' },
+            { priority: 'P1', task: 'Add floating instant booking drawer for mobile visitors.', impact: 'Medium', difficulty: 'Low', estimatedEffort: '2 hours' }
+          ]
+        },
+        {
+          phase: 2,
+          name: 'Phase 2: 3-Pack Dominance Moat (Days 16–30)',
+          daysRange: 'Days 16-30',
+          tasks: [
+            { priority: 'P1', task: 'Maintain 12-15 fresh verified reviews/month to maintain lead over #2 competitor.', impact: 'High', difficulty: 'Medium', estimatedEffort: 'Ongoing' }
+          ]
+        }
+      ]
+    },
+    evidence: [
+      { id: 'ev-301', finding: 'Observed at Rank #1 on Google Maps for "emergency dentist in Austin"', category: 'Ranking', source: 'Google Maps Search Results', observedAt: '2026-09-11T12:00:00Z', confidence: 'High' }
+    ],
+    contact: {
+      decisionMakerName: 'Dr. Michael Cho',
+      firstName: 'Michael',
+      role: 'Founder & Principal Dentist',
+      primaryEmail: 'info@austindentalworks.com',
+      emailFound: true,
+      emailSource: 'Website Header & Contact Page',
+      confidence: 'High',
+      websiteUrl: 'https://austindentalworks.com',
+      instagram: 'https://instagram.com/austindentalworks',
+      linkedin: 'https://linkedin.com/in/dr-michael-cho-austin',
+      outreachChannel: 'Email'
+    },
+    coldEmail: {
+      id: 'email-austin-3',
+      subjectRecommended: 'Michael, check Austin Dental Works on Google rn',
+      subjectAlt1: 'Austin Dental Works’s Google Maps spot',
+      subjectAlt2: 'Quick Google Maps finding for Austin Dental Works',
+      body: `Hey Michael,
+
+Came across Austin Dental Works while searching for emergency dentists in Austin last week.
+
+While looking into it, I noticed you're sitting at #1 on Google Maps — awesome spot, but competitors #2 and #3 are heavily pushing review velocity to take over that 3-pack position.
+
+Also, testing your inbound funnel, any missed call during busy hours is currently leaking dozens of high-value emergency bookings to them.
+
+I put together an action plan to defend Austin Dental Works's #1 spot, plus built out automated lead-capture workflows so you instantly lock in every caller without manual follow-ups.
+
+Already mapped out. Reply and I'll hand it over.
+
+Best,
+
+Anuj`,
+      wordCount: 94,
+      isUnder100Words: true,
+      targetRank: 1,
+      recipientEmail: 'info@austindentalworks.com',
+      recipientName: 'Michael',
+      status: 'Approved',
+      validation: {
+        isRealRank: true,
+        isRealBusinessName: true,
+        isUnder100Words: true,
+        noFabricatedClaims: true,
+        tailoredToTop3Status: true
+      }
+    },
+    leadStatus: 'New',
+    researchNotes: 'Current #1 ranking leader. Pitch angle: Defending position + automated missed-call lead capture.',
+    createdAt: '2026-09-11T12:02:00Z',
+    updatedAt: '2026-09-11T12:02:00Z'
+  }
+];
+
+export const INITIAL_WORKFLOWS: Workflow[] = [
+  {
+    id: 'wf-leadgen-full',
+    workspaceId: 'ws-default',
+    name: 'Full Local SEO Lead Generation',
+    description: 'Autonomous end-to-end pipeline: Maps search → Deduplication → 5-Point Ranking Grid → Competitors → GBP & Web Audit → SEO Gap Analysis → Top 3 Plan → Enrichment → Personalized Email → Save Lead.',
+    triggerType: 'manual',
+    status: 'idle',
+    createdAt: '2026-09-11T10:00:00Z',
+    updatedAt: '2026-09-11T12:00:00Z',
+    nodes: [
+      { id: 'node-1', type: 'customNode', position: { x: 50, y: 180 }, data: { label: 'Search Google Maps', type: 'google_maps_search', config: { query: 'Emergency Dentists in Austin, TX', location: 'Austin, TX', radiusKm: 10, maxResults: 50, primaryKeyword: 'emergency dentist' }, status: 'completed' } },
+      { id: 'node-2', type: 'customNode', position: { x: 300, y: 180 }, data: { label: 'Business Discovery', type: 'business_extraction', config: { extractDetails: true, extractPhotos: true }, status: 'completed' } },
+      { id: 'node-3', type: 'customNode', position: { x: 550, y: 180 }, data: { label: 'Deduplication', type: 'deduplication', config: { matchByNameAndPhone: true }, status: 'completed' } },
+      { id: 'node-4', type: 'customNode', position: { x: 800, y: 180 }, data: { label: '5-Point Ranking Grid', type: 'ranking_grid', config: { gridSize: 5, primaryKeyword: 'emergency dentist', checkCenterNorthSouthEastWest: true }, status: 'completed' } },
+      { id: 'node-5', type: 'customNode', position: { x: 1050, y: 80 }, data: { label: 'Competitor Analysis', type: 'competitor_analysis', config: { analyzeTop3: true }, status: 'completed' } },
+      { id: 'node-6', type: 'customNode', position: { x: 1050, y: 280 }, data: { label: 'GBP & Website Audit', type: 'website_seo_audit', config: { checkSsl: true, checkSchema: true, checkLeadCapture: true }, status: 'completed' } },
+      { id: 'node-7', type: 'customNode', position: { x: 1300, y: 180 }, data: { label: 'Local SEO Gap Analysis', type: 'local_seo_analysis', config: { calculateOpportunityScore: true, generateTimeline: true }, status: 'completed' } },
+      { id: 'node-8', type: 'customNode', position: { x: 1550, y: 180 }, data: { label: 'Contact Enrichment', type: 'contact_enrichment', config: { crawlPages: ['/contact', '/about', '/team'], extractEmails: true, findSocials: true }, status: 'completed' } },
+      { id: 'node-9', type: 'customNode', position: { x: 1800, y: 180 }, data: { label: 'Personalized Cold Email', type: 'email_generation', config: { strictUnder100Words: true, senderName: 'Anuj' }, status: 'completed' } },
+      { id: 'node-10', type: 'customNode', position: { x: 2050, y: 180 }, data: { label: 'Save Leads to Database', type: 'save_lead', config: { notifyOnComplete: true }, status: 'completed' } }
+    ],
+    edges: [
+      { id: 'e1-2', source: 'node-1', target: 'node-2', animated: true },
+      { id: 'e2-3', source: 'node-2', target: 'node-3', animated: true },
+      { id: 'e3-4', source: 'node-3', target: 'node-4', animated: true },
+      { id: 'e4-5', source: 'node-4', target: 'node-5', animated: true },
+      { id: 'e4-6', source: 'node-4', target: 'node-6', animated: true },
+      { id: 'e5-7', source: 'node-5', target: 'node-7', animated: true },
+      { id: 'e6-7', source: 'node-6', target: 'node-7', animated: true },
+      { id: 'e7-8', source: 'node-7', target: 'node-8', animated: true },
+      { id: 'e8-9', source: 'node-8', target: 'node-9', animated: true },
+      { id: 'e9-10', source: 'node-9', target: 'node-10', animated: true }
+    ]
+  },
+  {
+    id: 'wf-lead-finder',
+    workspaceId: 'ws-default',
+    name: 'Local Business Lead Finder (Fast)',
+    description: 'High-speed discovery pipeline: Google Maps search → Extract businesses → Check website status → Public contact research → Save leads.',
+    triggerType: 'manual',
+    status: 'idle',
+    createdAt: '2026-09-11T11:00:00Z',
+    updatedAt: '2026-09-11T11:00:00Z',
+    nodes: [
+      { id: 'f-1', type: 'customNode', position: { x: 50, y: 150 }, data: { label: 'Google Maps Search', type: 'google_maps_search', config: { maxResults: 25 }, status: 'idle' } },
+      { id: 'f-2', type: 'customNode', position: { x: 300, y: 150 }, data: { label: 'Website Detection', type: 'website_check', config: {}, status: 'idle' } },
+      { id: 'f-3', type: 'customNode', position: { x: 550, y: 150 }, data: { label: 'Contact Research', type: 'contact_enrichment', config: {}, status: 'idle' } },
+      { id: 'f-4', type: 'customNode', position: { x: 800, y: 150 }, data: { label: 'Save Leads', type: 'save_lead', config: {}, status: 'idle' } }
+    ],
+    edges: [
+      { id: 'fe1-2', source: 'f-1', target: 'f-2' },
+      { id: 'fe2-3', source: 'f-2', target: 'f-3' },
+      { id: 'fe3-4', source: 'f-3', target: 'f-4' }
+    ]
+  },
+  {
+    id: 'wf-seo-audit',
+    workspaceId: 'ws-default',
+    name: 'Full Local SEO Audit & Gap Engine',
+    description: 'Deep SEO audit: 5-Point rank grid → Competitors comparison → Deep website crawl → GBP audit → Action plan generation.',
+    triggerType: 'manual',
+    status: 'idle',
+    createdAt: '2026-09-11T11:15:00Z',
+    updatedAt: '2026-09-11T11:15:00Z',
+    nodes: [
+      { id: 'a-1', type: 'customNode', position: { x: 50, y: 150 }, data: { label: 'Search Maps', type: 'google_maps_search', config: {}, status: 'idle' } },
+      { id: 'a-2', type: 'customNode', position: { x: 300, y: 150 }, data: { label: 'Ranking Analysis', type: 'ranking_grid', config: {}, status: 'idle' } },
+      { id: 'a-3', type: 'customNode', position: { x: 550, y: 150 }, data: { label: 'Competitor Audit', type: 'competitor_analysis', config: {}, status: 'idle' } },
+      { id: 'a-4', type: 'customNode', position: { x: 800, y: 150 }, data: { label: 'Website Audit', type: 'website_seo_audit', config: {}, status: 'idle' } },
+      { id: 'a-5', type: 'customNode', position: { x: 1050, y: 150 }, data: { label: 'Action Plan & Timeline', type: 'action_plan', config: {}, status: 'idle' } }
+    ],
+    edges: [
+      { id: 'ae1-2', source: 'a-1', target: 'a-2' },
+      { id: 'ae2-3', source: 'a-2', target: 'a-3' },
+      { id: 'ae3-4', source: 'a-3', target: 'a-4' },
+      { id: 'ae4-5', source: 'a-4', target: 'a-5' }
+    ]
+  },
+  {
+    id: 'wf-ranking-monitor',
+    workspaceId: 'ws-default',
+    name: 'Ranking Monitor & Change Detector',
+    description: 'Scheduled monitor: checks 5-point local ranking grid against previous snapshot, computes delta, and flags drops/gains.',
+    triggerType: 'scheduled',
+    cronSchedule: '0 9 * * 1', // Every Monday at 9 AM
+    status: 'idle',
+    createdAt: '2026-09-11T11:30:00Z',
+    updatedAt: '2026-09-11T11:30:00Z',
+    nodes: [
+      { id: 'm-1', type: 'customNode', position: { x: 50, y: 150 }, data: { label: 'Target Businesses', type: 'google_maps_search', config: {}, status: 'idle' } },
+      { id: 'm-2', type: 'customNode', position: { x: 300, y: 150 }, data: { label: 'Check 5-Point Grid', type: 'ranking_grid', config: {}, status: 'idle' } },
+      { id: 'm-3', type: 'customNode', position: { x: 550, y: 150 }, data: { label: 'Rank Change Condition', type: 'condition', config: { condition: 'rank_changed' }, status: 'idle' } },
+      { id: 'm-4', type: 'customNode', position: { x: 800, y: 150 }, data: { label: 'Generate Alert Report', type: 'report_generation', config: {}, status: 'idle' } }
+    ],
+    edges: [
+      { id: 'me1-2', source: 'm-1', target: 'm-2' },
+      { id: 'me2-3', source: 'm-2', target: 'm-3' },
+      { id: 'me3-4', source: 'm-3', target: 'm-4' }
+    ]
+  }
+];
+
+export const INITIAL_EXECUTIONS: WorkflowExecution[] = [
+  {
+    id: 'exec-demo-101',
+    workflowId: 'wf-leadgen-full',
+    workspaceId: 'ws-default',
+    status: 'completed',
+    startedAt: '2026-09-11T12:00:00Z',
+    completedAt: '2026-09-11T12:02:45Z',
+    totalBusinessesDiscovered: 50,
+    businessesProcessed: 50,
+    currentStepIndex: 10,
+    totalSteps: 10,
+    nodeStatuses: {
+      'node-1': 'completed',
+      'node-2': 'completed',
+      'node-3': 'completed',
+      'node-4': 'completed',
+      'node-5': 'completed',
+      'node-6': 'completed',
+      'node-7': 'completed',
+      'node-8': 'completed',
+      'node-9': 'completed',
+      'node-10': 'completed'
+    },
+    resultsSummary: {
+      totalLeads: 50,
+      top3Count: 3,
+      outsideTop3Count: 47,
+      noWebsiteCount: 8,
+      emailsFoundCount: 39
+    },
+    logs: [
+      { id: 'log-1', timestamp: '12:00:01', level: 'info', nodeName: 'Google Maps Search', message: 'Initialized search query: "Emergency Dentists in Austin, TX" (Radius: 10km, Max: 50)' },
+      { id: 'log-2', timestamp: '12:00:15', level: 'success', nodeName: 'Business Discovery', message: 'Extracted 50 candidate businesses from Google Maps feed' },
+      { id: 'log-3', timestamp: '12:00:22', level: 'info', nodeName: 'Deduplication', message: 'Deduplicated listings: 50 unique physical locations verified' },
+      { id: 'log-4', timestamp: '12:00:45', level: 'info', nodeName: '5-Point Ranking Grid', message: 'Evaluated 5-point grid (Center, North, South, East, West). Top 3 Pack average review threshold: 180 reviews.' },
+      { id: 'log-5', timestamp: '12:01:10', level: 'info', nodeName: 'GBP & Website Audit', message: 'Audited 50 websites: 8 businesses lack websites; 34 lack LocalBusiness JSON-LD schema.' },
+      { id: 'log-6', timestamp: '12:01:40', level: 'info', nodeName: 'Contact Enrichment', message: 'Enriched 39 valid business emails and 42 Instagram/Facebook business profiles' },
+      { id: 'log-7', timestamp: '12:02:15', level: 'success', nodeName: 'Personalized Cold Email', message: 'Generated 50 customized cold emails under 100 words. Verified 0 hallucinations.' },
+      { id: 'log-8', timestamp: '12:02:45', level: 'success', nodeName: 'Save Leads', message: 'Workflow completed successfully. 50 leads saved to workspace database.' }
+    ]
+  }
+];

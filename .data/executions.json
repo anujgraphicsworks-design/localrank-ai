@@ -1,0 +1,91 @@
+[
+  {
+    "id": "exec-demo-101",
+    "workflowId": "wf-leadgen-full",
+    "workspaceId": "ws-default",
+    "status": "completed",
+    "startedAt": "2026-09-11T12:00:00Z",
+    "completedAt": "2026-09-11T12:02:45Z",
+    "totalBusinessesDiscovered": 50,
+    "businessesProcessed": 50,
+    "currentStepIndex": 10,
+    "totalSteps": 10,
+    "nodeStatuses": {
+      "node-1": "completed",
+      "node-2": "completed",
+      "node-3": "completed",
+      "node-4": "completed",
+      "node-5": "completed",
+      "node-6": "completed",
+      "node-7": "completed",
+      "node-8": "completed",
+      "node-9": "completed",
+      "node-10": "completed"
+    },
+    "resultsSummary": {
+      "totalLeads": 50,
+      "top3Count": 3,
+      "outsideTop3Count": 47,
+      "noWebsiteCount": 8,
+      "emailsFoundCount": 39
+    },
+    "logs": [
+      {
+        "id": "log-1",
+        "timestamp": "12:00:01",
+        "level": "info",
+        "nodeName": "Google Maps Search",
+        "message": "Initialized search query: \"Emergency Dentists in Austin, TX\" (Radius: 10km, Max: 50)"
+      },
+      {
+        "id": "log-2",
+        "timestamp": "12:00:15",
+        "level": "success",
+        "nodeName": "Business Discovery",
+        "message": "Extracted 50 candidate businesses from Google Maps feed"
+      },
+      {
+        "id": "log-3",
+        "timestamp": "12:00:22",
+        "level": "info",
+        "nodeName": "Deduplication",
+        "message": "Deduplicated listings: 50 unique physical locations verified"
+      },
+      {
+        "id": "log-4",
+        "timestamp": "12:00:45",
+        "level": "info",
+        "nodeName": "5-Point Ranking Grid",
+        "message": "Evaluated 5-point grid (Center, North, South, East, West). Top 3 Pack average review threshold: 180 reviews."
+      },
+      {
+        "id": "log-5",
+        "timestamp": "12:01:10",
+        "level": "info",
+        "nodeName": "GBP & Website Audit",
+        "message": "Audited 50 websites: 8 businesses lack websites; 34 lack LocalBusiness JSON-LD schema."
+      },
+      {
+        "id": "log-6",
+        "timestamp": "12:01:40",
+        "level": "info",
+        "nodeName": "Contact Enrichment",
+        "message": "Enriched 39 valid business emails and 42 Instagram/Facebook business profiles"
+      },
+      {
+        "id": "log-7",
+        "timestamp": "12:02:15",
+        "level": "success",
+        "nodeName": "Personalized Cold Email",
+        "message": "Generated 50 customized cold emails under 100 words. Verified 0 hallucinations."
+      },
+      {
+        "id": "log-8",
+        "timestamp": "12:02:45",
+        "level": "success",
+        "nodeName": "Save Leads",
+        "message": "Workflow completed successfully. 50 leads saved to workspace database."
+      }
+    ]
+  }
+]

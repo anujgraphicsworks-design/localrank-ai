@@ -1,0 +1,532 @@
+[
+  {
+    "id": "wf-leadgen-full",
+    "workspaceId": "ws-default",
+    "name": "Full Local SEO Lead Generation",
+    "description": "Autonomous end-to-end pipeline: Maps search → Deduplication → 5-Point Ranking Grid → Competitors → GBP & Web Audit → SEO Gap Analysis → Top 3 Plan → Enrichment → Personalized Email → Save Lead.",
+    "triggerType": "manual",
+    "status": "idle",
+    "createdAt": "2026-09-11T10:00:00Z",
+    "updatedAt": "2026-09-11T12:00:00Z",
+    "nodes": [
+      {
+        "id": "node-1",
+        "type": "customNode",
+        "position": {
+          "x": 50,
+          "y": 180
+        },
+        "data": {
+          "label": "Search Google Maps",
+          "type": "google_maps_search",
+          "config": {
+            "query": "Emergency Dentists in Austin, TX",
+            "location": "Austin, TX",
+            "radiusKm": 10,
+            "maxResults": 50,
+            "primaryKeyword": "emergency dentist"
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-2",
+        "type": "customNode",
+        "position": {
+          "x": 300,
+          "y": 180
+        },
+        "data": {
+          "label": "Business Discovery",
+          "type": "business_extraction",
+          "config": {
+            "extractDetails": true,
+            "extractPhotos": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-3",
+        "type": "customNode",
+        "position": {
+          "x": 550,
+          "y": 180
+        },
+        "data": {
+          "label": "Deduplication",
+          "type": "deduplication",
+          "config": {
+            "matchByNameAndPhone": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-4",
+        "type": "customNode",
+        "position": {
+          "x": 800,
+          "y": 180
+        },
+        "data": {
+          "label": "5-Point Ranking Grid",
+          "type": "ranking_grid",
+          "config": {
+            "gridSize": 5,
+            "primaryKeyword": "emergency dentist",
+            "checkCenterNorthSouthEastWest": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-5",
+        "type": "customNode",
+        "position": {
+          "x": 1050,
+          "y": 80
+        },
+        "data": {
+          "label": "Competitor Analysis",
+          "type": "competitor_analysis",
+          "config": {
+            "analyzeTop3": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-6",
+        "type": "customNode",
+        "position": {
+          "x": 1050,
+          "y": 280
+        },
+        "data": {
+          "label": "GBP & Website Audit",
+          "type": "website_seo_audit",
+          "config": {
+            "checkSsl": true,
+            "checkSchema": true,
+            "checkLeadCapture": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-7",
+        "type": "customNode",
+        "position": {
+          "x": 1300,
+          "y": 180
+        },
+        "data": {
+          "label": "Local SEO Gap Analysis",
+          "type": "local_seo_analysis",
+          "config": {
+            "calculateOpportunityScore": true,
+            "generateTimeline": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-8",
+        "type": "customNode",
+        "position": {
+          "x": 1550,
+          "y": 180
+        },
+        "data": {
+          "label": "Contact Enrichment",
+          "type": "contact_enrichment",
+          "config": {
+            "crawlPages": [
+              "/contact",
+              "/about",
+              "/team"
+            ],
+            "extractEmails": true,
+            "findSocials": true
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-9",
+        "type": "customNode",
+        "position": {
+          "x": 1800,
+          "y": 180
+        },
+        "data": {
+          "label": "Personalized Cold Email",
+          "type": "email_generation",
+          "config": {
+            "strictUnder100Words": true,
+            "senderName": "Anuj"
+          },
+          "status": "completed"
+        }
+      },
+      {
+        "id": "node-10",
+        "type": "customNode",
+        "position": {
+          "x": 2050,
+          "y": 180
+        },
+        "data": {
+          "label": "Save Leads to Database",
+          "type": "save_lead",
+          "config": {
+            "notifyOnComplete": true
+          },
+          "status": "completed"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "node-1",
+        "target": "node-2",
+        "animated": true
+      },
+      {
+        "id": "e2-3",
+        "source": "node-2",
+        "target": "node-3",
+        "animated": true
+      },
+      {
+        "id": "e3-4",
+        "source": "node-3",
+        "target": "node-4",
+        "animated": true
+      },
+      {
+        "id": "e4-5",
+        "source": "node-4",
+        "target": "node-5",
+        "animated": true
+      },
+      {
+        "id": "e4-6",
+        "source": "node-4",
+        "target": "node-6",
+        "animated": true
+      },
+      {
+        "id": "e5-7",
+        "source": "node-5",
+        "target": "node-7",
+        "animated": true
+      },
+      {
+        "id": "e6-7",
+        "source": "node-6",
+        "target": "node-7",
+        "animated": true
+      },
+      {
+        "id": "e7-8",
+        "source": "node-7",
+        "target": "node-8",
+        "animated": true
+      },
+      {
+        "id": "e8-9",
+        "source": "node-8",
+        "target": "node-9",
+        "animated": true
+      },
+      {
+        "id": "e9-10",
+        "source": "node-9",
+        "target": "node-10",
+        "animated": true
+      }
+    ]
+  },
+  {
+    "id": "wf-lead-finder",
+    "workspaceId": "ws-default",
+    "name": "Local Business Lead Finder (Fast)",
+    "description": "High-speed discovery pipeline: Google Maps search → Extract businesses → Check website status → Public contact research → Save leads.",
+    "triggerType": "manual",
+    "status": "idle",
+    "createdAt": "2026-09-11T11:00:00Z",
+    "updatedAt": "2026-09-11T11:00:00Z",
+    "nodes": [
+      {
+        "id": "f-1",
+        "type": "customNode",
+        "position": {
+          "x": 50,
+          "y": 150
+        },
+        "data": {
+          "label": "Google Maps Search",
+          "type": "google_maps_search",
+          "config": {
+            "maxResults": 25
+          },
+          "status": "idle"
+        }
+      },
+      {
+        "id": "f-2",
+        "type": "customNode",
+        "position": {
+          "x": 300,
+          "y": 150
+        },
+        "data": {
+          "label": "Website Detection",
+          "type": "website_check",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "f-3",
+        "type": "customNode",
+        "position": {
+          "x": 550,
+          "y": 150
+        },
+        "data": {
+          "label": "Contact Research",
+          "type": "contact_enrichment",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "f-4",
+        "type": "customNode",
+        "position": {
+          "x": 800,
+          "y": 150
+        },
+        "data": {
+          "label": "Save Leads",
+          "type": "save_lead",
+          "config": {},
+          "status": "idle"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "fe1-2",
+        "source": "f-1",
+        "target": "f-2"
+      },
+      {
+        "id": "fe2-3",
+        "source": "f-2",
+        "target": "f-3"
+      },
+      {
+        "id": "fe3-4",
+        "source": "f-3",
+        "target": "f-4"
+      }
+    ]
+  },
+  {
+    "id": "wf-seo-audit",
+    "workspaceId": "ws-default",
+    "name": "Full Local SEO Audit & Gap Engine",
+    "description": "Deep SEO audit: 5-Point rank grid → Competitors comparison → Deep website crawl → GBP audit → Action plan generation.",
+    "triggerType": "manual",
+    "status": "idle",
+    "createdAt": "2026-09-11T11:15:00Z",
+    "updatedAt": "2026-09-11T11:15:00Z",
+    "nodes": [
+      {
+        "id": "a-1",
+        "type": "customNode",
+        "position": {
+          "x": 50,
+          "y": 150
+        },
+        "data": {
+          "label": "Search Maps",
+          "type": "google_maps_search",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "a-2",
+        "type": "customNode",
+        "position": {
+          "x": 300,
+          "y": 150
+        },
+        "data": {
+          "label": "Ranking Analysis",
+          "type": "ranking_grid",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "a-3",
+        "type": "customNode",
+        "position": {
+          "x": 550,
+          "y": 150
+        },
+        "data": {
+          "label": "Competitor Audit",
+          "type": "competitor_analysis",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "a-4",
+        "type": "customNode",
+        "position": {
+          "x": 800,
+          "y": 150
+        },
+        "data": {
+          "label": "Website Audit",
+          "type": "website_seo_audit",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "a-5",
+        "type": "customNode",
+        "position": {
+          "x": 1050,
+          "y": 150
+        },
+        "data": {
+          "label": "Action Plan & Timeline",
+          "type": "action_plan",
+          "config": {},
+          "status": "idle"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "ae1-2",
+        "source": "a-1",
+        "target": "a-2"
+      },
+      {
+        "id": "ae2-3",
+        "source": "a-2",
+        "target": "a-3"
+      },
+      {
+        "id": "ae3-4",
+        "source": "a-3",
+        "target": "a-4"
+      },
+      {
+        "id": "ae4-5",
+        "source": "a-4",
+        "target": "a-5"
+      }
+    ]
+  },
+  {
+    "id": "wf-ranking-monitor",
+    "workspaceId": "ws-default",
+    "name": "Ranking Monitor & Change Detector",
+    "description": "Scheduled monitor: checks 5-point local ranking grid against previous snapshot, computes delta, and flags drops/gains.",
+    "triggerType": "scheduled",
+    "cronSchedule": "0 9 * * 1",
+    "status": "idle",
+    "createdAt": "2026-09-11T11:30:00Z",
+    "updatedAt": "2026-09-11T11:30:00Z",
+    "nodes": [
+      {
+        "id": "m-1",
+        "type": "customNode",
+        "position": {
+          "x": 50,
+          "y": 150
+        },
+        "data": {
+          "label": "Target Businesses",
+          "type": "google_maps_search",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "m-2",
+        "type": "customNode",
+        "position": {
+          "x": 300,
+          "y": 150
+        },
+        "data": {
+          "label": "Check 5-Point Grid",
+          "type": "ranking_grid",
+          "config": {},
+          "status": "idle"
+        }
+      },
+      {
+        "id": "m-3",
+        "type": "customNode",
+        "position": {
+          "x": 550,
+          "y": 150
+        },
+        "data": {
+          "label": "Rank Change Condition",
+          "type": "condition",
+          "config": {
+            "condition": "rank_changed"
+          },
+          "status": "idle"
+        }
+      },
+      {
+        "id": "m-4",
+        "type": "customNode",
+        "position": {
+          "x": 800,
+          "y": 150
+        },
+        "data": {
+          "label": "Generate Alert Report",
+          "type": "report_generation",
+          "config": {},
+          "status": "idle"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "me1-2",
+        "source": "m-1",
+        "target": "m-2"
+      },
+      {
+        "id": "me2-3",
+        "source": "m-2",
+        "target": "m-3"
+      },
+      {
+        "id": "me3-4",
+        "source": "m-3",
+        "target": "m-4"
+      }
+    ]
+  }
+]
