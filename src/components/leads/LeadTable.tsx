@@ -37,11 +37,6 @@ export function LeadTable({ leads }: LeadTableProps) {
 
   useEffect(() => {
     setLeadList(leads);
-    getLeads().then((clientLeads) => {
-      if (clientLeads && clientLeads.length > 0) {
-        setLeadList(clientLeads);
-      }
-    });
   }, [leads]);
 
   // Filter logic

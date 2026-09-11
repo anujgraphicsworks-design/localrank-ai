@@ -40,16 +40,16 @@ export async function getLeads(workspaceId: string = 'ws-default'): Promise<Busi
       if (isConfigured && db) {
         const colRef = collection(db, 'leads');
         const snapshot = await getDocs(colRef);
-        if (!snapshot.empty) {
-          const remoteLeads = snapshot.docs.map((d) => d.data() as BusinessLead);
-          remoteLeads.sort((a, b) => {
-            const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
-            const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
-            return timeB - timeA;
-          });
-          setStorageItem('leads', remoteLeads);
-          return remoteLeads.filter((l) => !workspaceId || l.workspaceId === workspaceId);
-        }
+        
+        // Return documents directly from Firestore
+        const remoteLeads = snapshot.docs.map((d) => d.data() as BusinessLead);
+        remoteLeads.sort((a, b) => {
+          const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+          const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
+        setStorageItem('leads', remoteLeads);
+        return remoteLeads.filter((l) => !workspaceId || l.workspaceId === workspaceId);
       }
     } catch (err) {
       console.warn('Firestore getLeads fallback to local storage:', err);
@@ -80,7 +80,7 @@ export async function getLeadById(id: string): Promise<BusinessLead | null> {
 }
 
 export async function saveLead(lead: BusinessLead): Promise<void> {
-  const leads = getStorageItem<BusinessLead[]>('leads', INITIAL_LEADS);
+  const leads = getStorageItem<BusinessLead[]>('leads', []);
   const existingIdx = leads.findIndex((l) => l.id === lead.id);
   const now = new Date().toISOString();
   const updatedLead: BusinessLead = existingIdx >= 0
@@ -99,19 +99,21 @@ export async function saveLead(lead: BusinessLead): Promise<void> {
       const { db, isConfigured } = getFirebaseApp();
       if (isConfigured && db) {
         const cleanLead = JSON.parse(JSON.stringify(updatedLead));
-        setDoc(doc(db, 'leads', updatedLead.id), cleanLead, { merge: true }).catch((e) =>
-          console.warn('Firestore setDoc warning:', e)
-        );
+        await setDoc(doc(db, 'leads', updatedLead.id), cleanLead, { merge: true });
       }
     } catch (err) {
-      console.warn('Firestore saveLead error:', err);
+      console.error('Firestore saveLead error:', err);
     }
 
-    fetch('/api/leads', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedLead)
-    }).catch((e) => console.error('Error syncing lead to server:', e));
+    try {
+      await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedLead)
+      });
+    } catch (e) {
+      console.error('Error syncing lead to server:', e);
+    }
   }
 }
 
@@ -125,7 +127,7 @@ export async function updateLead(id: string, updates: Partial<BusinessLead>): Pr
 }
 
 export async function deleteLead(id: string): Promise<void> {
-  const leads = getStorageItem<BusinessLead[]>('leads', INITIAL_LEADS);
+  const leads = getStorageItem<BusinessLead[]>('leads', []);
   const filtered = leads.filter((l) => l.id !== id);
   setStorageItem('leads', filtered);
 
@@ -133,17 +135,17 @@ export async function deleteLead(id: string): Promise<void> {
     try {
       const { db, isConfigured } = getFirebaseApp();
       if (isConfigured && db) {
-        deleteDoc(doc(db, 'leads', id)).catch((e) =>
-          console.warn('Firestore deleteDoc warning:', e)
-        );
+        await deleteDoc(doc(db, 'leads', id));
       }
     } catch (err) {
-      console.warn('Firestore deleteLead error:', err);
+      console.error('Firestore deleteLead error:', err);
     }
 
-    fetch(`/api/leads?id=${id}`, { method: 'DELETE' }).catch((e) =>
-      console.error('Error syncing delete to server:', e)
-    );
+    try {
+      await fetch(`/api/leads?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('Error syncing delete to server:', e);
+    }
   }
 }
 
@@ -198,19 +200,21 @@ export async function saveWorkflow(workflow: Workflow): Promise<void> {
       const { db, isConfigured } = getFirebaseApp();
       if (isConfigured && db) {
         const cleanWf = JSON.parse(JSON.stringify(updatedWf));
-        setDoc(doc(db, 'workflows', updatedWf.id), cleanWf, { merge: true }).catch((e) =>
-          console.warn('Firestore save workflow warning:', e)
-        );
+        await setDoc(doc(db, 'workflows', updatedWf.id), cleanWf, { merge: true });
       }
     } catch (err) {
-      console.warn('Firestore save workflow error:', err);
+      console.error('Firestore save workflow error:', err);
     }
 
-    fetch('/api/workflows', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedWf)
-    }).catch((e) => console.error('Error syncing workflow to server:', e));
+    try {
+      await fetch('/api/workflows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedWf)
+      });
+    } catch (e) {
+      console.error('Error syncing workflow to server:', e);
+    }
   }
 }
 
@@ -223,17 +227,17 @@ export async function deleteWorkflow(id: string): Promise<void> {
     try {
       const { db, isConfigured } = getFirebaseApp();
       if (isConfigured && db) {
-        deleteDoc(doc(db, 'workflows', id)).catch((e) =>
-          console.warn('Firestore delete workflow warning:', e)
-        );
+        await deleteDoc(doc(db, 'workflows', id));
       }
     } catch (err) {
-      console.warn('Firestore delete workflow error:', err);
+      console.error('Firestore delete workflow error:', err);
     }
 
-    fetch(`/api/workflows?id=${id}`, { method: 'DELETE' }).catch((e) =>
-      console.error('Error syncing delete workflow to server:', e)
-    );
+    try {
+      await fetch(`/api/workflows?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('Error syncing delete workflow to server:', e);
+    }
   }
 }
 
@@ -281,19 +285,21 @@ export async function saveExecution(execution: WorkflowExecution): Promise<void>
       const { db, isConfigured } = getFirebaseApp();
       if (isConfigured && db) {
         const cleanExec = JSON.parse(JSON.stringify(execution));
-        setDoc(doc(db, 'executions', execution.id), cleanExec, { merge: true }).catch((e) =>
-          console.warn('Firestore save execution warning:', e)
-        );
+        await setDoc(doc(db, 'executions', execution.id), cleanExec, { merge: true });
       }
     } catch (err) {
-      console.warn('Firestore save execution error:', err);
+      console.error('Firestore save execution error:', err);
     }
 
-    fetch('/api/executions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(execution)
-    }).catch((e) => console.error('Error syncing execution to server:', e));
+    try {
+      await fetch('/api/executions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(execution)
+      });
+    } catch (e) {
+      console.error('Error syncing execution to server:', e);
+    }
   }
 }
 
@@ -329,19 +335,21 @@ export async function saveSettings(settings: IntegrationSettings): Promise<void>
       const { db, isConfigured } = getFirebaseApp();
       if (isConfigured && db) {
         const cleanSettings = JSON.parse(JSON.stringify(settings));
-        setDoc(doc(db, 'settings', 'global'), cleanSettings, { merge: true }).catch((e) =>
-          console.warn('Firestore save settings warning:', e)
-        );
+        await setDoc(doc(db, 'settings', 'global'), cleanSettings, { merge: true });
       }
     } catch (err) {
-      console.warn('Firestore save settings error:', err);
+      console.error('Firestore save settings error:', err);
     }
 
-    fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings)
-    }).catch((e) => console.error('Error syncing settings to server:', e));
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+    } catch (e) {
+      console.error('Error syncing settings to server:', e);
+    }
   }
 }
 

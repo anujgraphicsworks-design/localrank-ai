@@ -26,10 +26,10 @@ export function Header({ title, subtitle, actionButton }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Demo Mode Badge */}
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs">
-          <AlertCircle className="w-3.5 h-3.5" />
-          <span className="font-medium text-[11px]">DEMO MODE: Austin Dentists</span>
+        {/* Firebase Cloud Live Badge */}
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="font-medium text-[11px]">Firebase Cloud Live</span>
         </div>
 
         {/* Quick CSV Export */}

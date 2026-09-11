@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Compass,
@@ -17,11 +19,25 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { getLeads, getExecutions } from '@/lib/server/storage';
+import { getLeads, getExecutions } from '@/lib/firebase/db';
+import { BusinessLead, WorkflowExecution } from '@/lib/types';
 
-export default async function DashboardPage() {
-  const leads = await getLeads();
-  const executions = await getExecutions();
+export default function DashboardPage() {
+  const [leads, setLeads] = useState<BusinessLead[]>([]);
+  const [executions, setExecutions] = useState<WorkflowExecution[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([getLeads(), getExecutions()]).then(([l, e]) => {
+      if (active) {
+        setLeads(l);
+        setExecutions(e);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Metrics computation
   const totalDiscovered = leads.length;
