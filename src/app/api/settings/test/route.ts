@@ -32,12 +32,16 @@ export async function POST(req: NextRequest) {
 
     if (provider === 'gemini') {
       try {
-        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-        const res = await fetch(testUrl);
+        const testUrl = `https://api.maxplus-ai.cc/gemini-full/v1/models`;
+        const res = await fetch(testUrl, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
         if (res.ok) {
-          return NextResponse.json({ success: true, message: 'Connected to Google Gemini AI successfully!' });
+          return NextResponse.json({ success: true, message: 'Connected to Maxplus Gemini 3.8 successfully!' });
         } else {
-          return NextResponse.json({ success: false, message: `Gemini API returned status ${res.status}` });
+          return NextResponse.json({ success: false, message: `API returned status ${res.status}` });
         }
       } catch (err: any) {
         return NextResponse.json({ success: false, message: `Connection failed: ${err.message}` });

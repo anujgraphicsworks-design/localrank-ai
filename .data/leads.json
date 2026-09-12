@@ -1,5 +1,61 @@
 [
   {
+    "id": "lead-scraped-16485385020591687555",
+    "workspaceId": "ws-default",
+    "isDemo": false,
+    "businessName": "Beacon Plumbing, Heating, Electrical & Mechanical Inc - Seattle",
+    "category": "plumbers",
+    "primaryService": "plumbers",
+    "address": "Plumber · 515 7th Ave S",
+    "city": "seattle",
+    "state": "TX",
+    "postalCode": "78704",
+    "country": "USA",
+    "googleMapsUrl": "https://maps.app.goo.gl/sU7NBgem7yce2jeA9",
+    "placeCid": "16485385020591687555",
+    "isUnclaimed": false,
+    "phone": "Not publicly listed",
+    "website": "https://www.beaconplumbing.net/plumbing-services-seattle-wa?utm_source=google-gbp&utm_medium=organic&utm_campaign=*668*beacon-plumbing-seattle",
+    "hasWebsite": true,
+    "rating": 4.6,
+    "reviewsCount": 3466,
+    "businessStatus": "OPERATIONAL",
+    "photosCount": 15,
+    "currentRank": 1,
+    "whatLacks": [
+      "Review Velocity Deficit: Sufficient total reviews, but lacks fresh monthly review velocity.",
+      "Local Schema Deficit: Lacks verified LocalBusiness schema & geo-coordinates.",
+      "Inbound Automation Gap: Missing automated 60-second follow-up workflows for incoming calls/inquiries."
+    ],
+    "actionPlan": {
+      "phase1": "Audit and lock in primary GMB category to 'plumbers' and add 4-6 relevant secondary categories. | Inject high-intent local keywords and geo-tags into business description and service menu. | Deploy automated post-service SMS review request campaign to past 60 days of satisfied customers. | Upload 15+ geotagged high-resolution photos of premises, staff, and real client work.",
+      "phase2": "Build & sync consistent NAP (Name, Address, Phone) citations across top 40 local directories (Yelp, Apple Maps, Bing, YellowPages). | Inject LocalBusiness JSON-LD schema with exact geo-coordinates and service taxonomy on website. | Embed official Google Maps driving directions onto the website contact section. | Publish 2 weekly GMB updates with keyword-rich call-to-actions to keep profile freshness score high.",
+      "phase3": "Install automated Missed-Call Text-Back: instantly texts callers within 30 seconds if staff is busy, locking in appointments. | Set up instant 24/7 web booking or inquiry capture workflow routing directly to front-desk phones. | Maintain steady velocity of 8-12 verified 5-star reviews every month to leapfrog competitor rankings. | Monitor Google Maps rank grid tracker to measure 3-pack expansion across target neighborhood radius.",
+      "timelineDays": 30,
+      "timelineSummary": "15-30 Days (Rank Retention & Conversion Maximization)"
+    },
+    "contact": {
+      "firstName": "there",
+      "primaryEmail": "customersupport@beaconplumbing.net",
+      "allEmails": [
+        "customersupport@beaconplumbing.net",
+        "bill@beaconplumbing.net"
+      ],
+      "emailFound": true,
+      "facebookUrl": "https://www.facebook.com/BeaconPlumbingInc/",
+      "instagramUrl": "https://www.instagram.com/beaconplumbing/"
+    },
+    "coldEmail": {
+      "subject": "Protecting Beacon's #1 rank in Seattle",
+      "body": "Hi there,\n\nCongrats on holding the #1 spot for plumbers in Seattle.\n\nStaying there is the real challenge. I noticed your fresh review velocity has slowed down, and after-hours inquiries lack an automated 60-second follow-up workflow. In a market this competitive, slow response times quietly bleed high-ticket emergency calls to #2.\n\nWe help market leaders automate instant lead capture and sustain steady review flow so competitors can't close the gap.\n\nWorth a quick 5-minute chat this week to see how it works?\n\nBest,\nAnuj",
+      "wordCount": 84,
+      "recipientEmail": "customersupport@beaconplumbing.net"
+    },
+    "leadStatus": "New",
+    "createdAt": "2026-09-12T10:52:38.163792",
+    "updatedAt": "2026-09-12T10:52:38.163863"
+  },
+  {
     "id": "lead-scraped-8726852563881499337",
     "workspaceId": "ws-default",
     "isDemo": false,

@@ -50,7 +50,7 @@ def count_words(text: str) -> int:
     tokens = re.findall(r'\b[\w\'-]+\b', text)
     return len(tokens)
 
-def generate_cold_email(business: dict, your_name: str = "Anuj", strict_under_100: bool = True):
+def generate_cold_email(business: dict, your_name: str = "Anuj", strict_under_100: bool = True, ai_key: str = None, use_ai: bool = False):
     """
     Generates personalized cold email for business.
     Returns:
@@ -122,11 +122,69 @@ def generate_cold_email(business: dict, your_name: str = "Anuj", strict_under_10
     else:
         channel = "Direct Outreach / SMS"
 
+    biz_name = business_name
+    first_name_clean = first_name
+    rank = current_rank
+    service = primary_service
+    final_subject = subject
+    final_body = body
+    is_fallback = True
+
+    if use_ai and ai_key:
+        try:
+            import requests
+            import json
+            prompt = f"""
+You are an expert B2B cold email copywriter. Write a highly converting cold email to this business owner.
+The email MUST be UNDER 100 words. Keep it punchy, direct, and conversational.
+Do not use cliches. Provide a clear hook, value proposition, and a soft call to action.
+
+Business Name: {biz_name}
+First Name: {first_name_clean}
+Current Rank: #{rank}
+Service: {service}
+City: {city}
+Sender Name: {your_name}
+What they lack: {business.get('auditPlan', {}).get('whatLacks', [])}
+
+Return ONLY valid JSON in this exact structure:
+{{
+  "subject": "The email subject line",
+  "body": "The full email body"
+}}
+"""
+            headers = {
+                "Authorization": f"Bearer {ai_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "gemini-3.8-flash",
+                "messages": [{"role": "user", "content": prompt}],
+                "response_format": {"type": "json_object"}
+            }
+            resp = requests.post("https://api.maxplus-ai.cc/gemini-full/v1/chat/completions", headers=headers, json=payload, timeout=30)
+            if resp.ok:
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"]
+                if content.startswith("```json"):
+                    content = content[7:-3]
+                ai_data = json.loads(content)
+                
+                final_subject = ai_data.get("subject", final_subject)
+                final_body = ai_data.get("body", final_body)
+                is_fallback = False
+                print(f"[*] Gemini AI successfully generated cold email for {biz_name}")
+        except Exception as e:
+            print(f"[!] Gemini AI email generation failed: {e}")
+
+    word_count = count_words(final_body)
+
     return {
-        "subject": subject,
-        "body": body,
+        "subject": final_subject,
+        "body": final_body,
         "wordCount": word_count,
         "isUnder100Words": word_count < 100,
+        "isFallback": is_fallback,
         "recipientEmail": primary_email,
         "contactChannel": channel,
         "variables": variables

@@ -12,6 +12,7 @@ export default function SettingsPage() {
     googleMapsStatus: 'not_configured',
     geminiApiKey: '',
     geminiStatus: 'not_configured',
+    useAiAnalysis: false,
     enableDemoMode: true,
     maxScrapeConcurrency: 5,
     requestTimeoutSeconds: 15,
@@ -143,8 +144,8 @@ export default function SettingsPage() {
                 type="password"
                 value={settings.geminiApiKey || ''}
                 onChange={(e) => setSettings({ ...settings, geminiApiKey: e.target.value })}
-                placeholder="AIzaSy..."
-                className="flex-1 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500 font-mono"
+                placeholder="Enter Maxplus API Key (ccsk-...)"
+                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
               />
               <button
                 onClick={() => handleTestConnection('gemini')}
@@ -155,8 +156,29 @@ export default function SettingsPage() {
                 <span>Test Connection</span>
               </button>
             </div>
+            
+            {/* AI Toggle */}
+            <div className="mt-4 flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-200">Use AI Analysis & Email Generation</label>
+                <p className="text-[11px] text-zinc-400">When enabled, uses Gemini 3.8 to generate audits and cold emails. Otherwise, uses deterministic Python logic.</p>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, useAiAnalysis: !settings.useAiAnalysis })}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950 ${
+                  settings.useAiAnalysis ? 'bg-emerald-500' : 'bg-zinc-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    settings.useAiAnalysis ? 'translate-x-2' : '-translate-x-2'
+                  }`}
+                />
+              </button>
+            </div>
+
             {testMessage?.provider === 'gemini' && (
-              <p className={`text-[11px] ${testMessage.success ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <p className={`text-[11px] mt-2 ${testMessage.success ? 'text-emerald-400' : 'text-amber-400'}`}>
                 {testMessage.text}
               </p>
             )}

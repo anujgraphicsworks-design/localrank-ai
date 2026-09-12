@@ -13,7 +13,7 @@ import { analyzeCompetitorGaps } from '../providers/gap';
 import { calculateOpportunityScore, generateActionPlanAndTimeline } from '../providers/strategy';
 import { enrichContactDetails } from '../providers/enrichment';
 import { generateColdEmail } from '../providers/email';
-import { saveLead, saveExecution } from '../firebase/db';
+import { saveLead, saveExecution, getSettings } from '../firebase/db';
 
 export interface WorkflowEngineCallbacks {
   onLog?: (log: ExecutionLog) => void;
@@ -43,6 +43,9 @@ export class WorkflowEngine {
     const executionId = `exec-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
     const startedAt = new Date().toISOString();
 
+    // Fetch user settings (including Gemini AI keys)
+    const settings = await getSettings();
+
     const nodeStatuses: Record<string, NodeStatus> = {};
     for (const node of workflow.nodes) {
       nodeStatuses[node.id] = 'queued';
@@ -71,16 +74,19 @@ export class WorkflowEngine {
       workspaceId: workflow.workspaceId,
       status: 'running',
       startedAt,
-      totalBusinessesDiscovered: 0,
-      businessesProcessed: 0,
+      completedAt: undefined,
       currentStepIndex: 0,
       totalSteps: workflow.nodes.length,
+      currentNodeId: undefined,
       nodeStatuses,
+      totalBusinessesDiscovered: 0,
+      businessesProcessed: 0,
       logs
     };
 
-    addLog('info', `Workflow "${workflow.name}" execution started natively inside LocalRank AI engine.`);
     callbacks?.onStatusChange?.(execution);
+
+    addLog('info', `Starting execution for workflow: ${workflow.name}`);
 
     // Topological order of nodes based on edges
     const orderedNodes = this.orderNodes(workflow);
@@ -142,7 +148,7 @@ export class WorkflowEngine {
 
       try {
         // Execute the specific node handler
-        context = await this.executeNode(node, context, (msg, level = 'info') => {
+        context = await this.executeNode(node, context, settings, (msg, level = 'info') => {
           addLog(level, msg, node.id, node.data.label);
         });
 
@@ -242,12 +248,10 @@ export class WorkflowEngine {
     return ordered;
   }
 
-  /**
-   * Executes individual node logic
-   */
   private async executeNode(
     node: any,
     ctx: any,
+    settings: any,
     log: (msg: string, level?: ExecutionLog['level']) => void
   ): Promise<any> {
     const config = node.data.config || {};
@@ -280,7 +284,13 @@ export class WorkflowEngine {
             const searchRes = await fetch('http://127.0.0.1:8787/api/search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query, limit: maxResults, sender: config.senderName || 'Anuj' })
+              body: JSON.stringify({ 
+                query, 
+                limit: maxResults, 
+                sender: config.senderName || 'Anuj',
+                ai_key: settings.geminiApiKey,
+                use_ai: settings.useAiAnalysis
+              })
             });
             if (searchRes.ok) {
               log('Live scrape started. Polling for results (this may take 1-3 minutes)...');

@@ -231,7 +231,59 @@ def calculate_top3_plan(business: dict, benchmark: dict):
         "actionPlan": action_plan
     }
 
-def run_audit(business: dict, benchmark: dict):
+def enhance_plan_with_ai(business: dict, benchmark: dict, heuristic_plan: dict, ai_key: str) -> dict:
+    """Uses Gemini 3.8 to generate a hyper-personalized action plan and audit findings."""
+    biz_name = business.get("businessName", "This business")
+    rank = business.get("currentRank", "unknown")
+    category = business.get("category", "business")
+    
+    prompt = f"""
+You are a top-tier local SEO expert. Analyze this business and provide a realistic, 3-phase action plan to get them into the Google Maps Top 3.
+Business Name: {biz_name}
+Current Rank: #{rank}
+Category: {category}
+Reviews: {business.get('reviewsCount', 0)} (Top 3 Avg: {benchmark.get('top3AvgReviews', 0)})
+Rating: {business.get('rating', 0)} (Top 3 Avg: {benchmark.get('top3AvgRating', 0)})
+
+Return ONLY valid JSON in this exact structure:
+{{
+  "whatLacks": ["bullet 1 about what they are missing", "bullet 2"],
+  "actionPlan": {{
+    "phase1": {{ "name": "Phase 1: ...", "steps": ["step 1", "step 2"] }},
+    "phase2": {{ "name": "Phase 2: ...", "steps": ["step 1", "step 2"] }},
+    "phase3": {{ "name": "Phase 3: ...", "steps": ["step 1", "step 2"] }}
+  }}
+}}
+"""
+    try:
+        import json
+        headers = {
+            "Authorization": f"Bearer {ai_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gemini-3.8-flash",
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"}
+        }
+        resp = requests.post("https://api.maxplus-ai.cc/gemini-full/v1/chat/completions", headers=headers, json=payload, timeout=30)
+        if resp.ok:
+            data = resp.json()
+            content = data["choices"][0]["message"]["content"]
+            # Clean up potential markdown formatting
+            if content.startswith("```json"):
+                content = content[7:-3]
+            ai_data = json.loads(content)
+            
+            heuristic_plan["whatLacks"] = ai_data.get("whatLacks", heuristic_plan["whatLacks"])
+            heuristic_plan["actionPlan"] = ai_data.get("actionPlan", heuristic_plan["actionPlan"])
+            print(f"[*] Gemini AI successfully enhanced audit plan for {biz_name}")
+    except Exception as e:
+        print(f"[!] Gemini AI plan enhancement failed: {e}")
+        
+    return heuristic_plan
+
+def run_audit(business: dict, benchmark: dict, ai_key: str = None, use_ai: bool = False):
     """
     Runs full combined audit on business data:
     1. Technical Website Audit (if website exists)
@@ -240,6 +292,9 @@ def run_audit(business: dict, benchmark: dict):
     """
     web_audit = inspect_website(business.get("website"))
     plan = calculate_top3_plan(business, benchmark)
+    
+    if use_ai and ai_key:
+        plan = enhance_plan_with_ai(business, benchmark, plan, ai_key)
 
     return {
         **business,

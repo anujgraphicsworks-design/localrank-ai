@@ -49,7 +49,7 @@ def try_preload_latest():
 
 try_preload_latest()
 
-def execute_pipeline_async(query, limit, sender):
+def execute_pipeline_async(query, limit, sender, ai_key=None, use_ai=False):
     global RUN_STATE
     try:
         with STATE_LOCK:
@@ -68,7 +68,14 @@ def execute_pipeline_async(query, limit, sender):
                 RUN_STATE["percent"] = p_data.get("percent", 0)
 
         pipeline = MapsPipeline(headless=True)
-        res = pipeline.execute(query=query, max_results=limit, sender_name=sender, progress_callback=on_progress)
+        res = pipeline.execute(
+            query=query, 
+            max_results=limit, 
+            sender_name=sender, 
+            ai_key=ai_key, 
+            use_ai=use_ai, 
+            progress_callback=on_progress
+        )
 
         with STATE_LOCK:
             RUN_STATE["status"] = "completed"
@@ -221,6 +228,8 @@ class LeadGenHandler(BaseHTTPRequestHandler):
             query = params.get("query", "emergency dentists in Austin").strip()
             limit = int(params.get("limit", 10))
             sender = params.get("sender", "Anuj").strip()
+            ai_key = params.get("ai_key", "").strip()
+            use_ai = bool(params.get("use_ai", False))
 
             with STATE_LOCK:
                 if RUN_STATE["status"] == "running":
@@ -230,7 +239,7 @@ class LeadGenHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": "A pipeline task is already in progress."}).encode('utf-8'))
                     return
 
-            thread = threading.Thread(target=execute_pipeline_async, args=(query, limit, sender), daemon=True)
+            thread = threading.Thread(target=execute_pipeline_async, args=(query, limit, sender, ai_key, use_ai), daemon=True)
             thread.start()
 
             self.send_response(200)

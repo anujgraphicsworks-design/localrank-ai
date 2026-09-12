@@ -360,6 +360,7 @@ export interface IntegrationSettings {
   googleMapsStatus: 'connected' | 'not_configured' | 'error';
   geminiApiKey?: string;
   geminiStatus: 'connected' | 'not_configured' | 'error';
+  useAiAnalysis: boolean;
   enableDemoMode: boolean;
   maxScrapeConcurrency: number;
   requestTimeoutSeconds: number;

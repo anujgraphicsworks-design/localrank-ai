@@ -47,7 +47,7 @@ class MapsPipeline:
         self.scraper = MapsScraper(headless=headless)
         self.enricher = EnrichmentEngine(timeout=5)
 
-    def execute(self, query: str, max_results: int = 10, sender_name: str = "Anuj", progress_callback=None):
+    def execute(self, query: str, max_results: int = 10, sender_name: str = "Anuj", ai_key: str = None, use_ai: bool = False, progress_callback=None):
         """
         Executes complete pipeline:
         Stage 1: Google Maps Scraping & Ranking (Inspecting profiles one by one in background)
@@ -88,13 +88,13 @@ class MapsPipeline:
             update_progress(3, "Auditing & Enrichment", f"Processing #{rank}: {biz_name}...", curr_pct)
 
             # Stage 2 & 3: Audit Engine (Ranking gap, what lacks, timeline, 3-phase action plan, website check)
-            audited = run_audit(biz, benchmark)
+            audited = run_audit(biz, benchmark, ai_key=ai_key, use_ai=use_ai)
 
             # Stage 4: Contact & Social Enrichment (Emails, FB, IG, First Name)
             enriched = self.enricher.enrich(audited)
 
             # Stage 5: Cold Email Synthesis (Under 100 words, exact user template)
-            email_data = generate_cold_email(enriched, your_name=sender_name, strict_under_100=True)
+            email_data = generate_cold_email(enriched, your_name=sender_name, strict_under_100=True, ai_key=ai_key, use_ai=use_ai)
             enriched["coldEmail"] = email_data
 
             processed_leads.append(enriched)

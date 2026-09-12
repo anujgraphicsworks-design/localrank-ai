@@ -5,6 +5,7 @@ export const INITIAL_SETTINGS: IntegrationSettings = {
   googleMapsStatus: 'not_configured',
   geminiApiKey: '',
   geminiStatus: 'not_configured',
+  useAiAnalysis: false,
   enableDemoMode: true,
   maxScrapeConcurrency: 5,
   requestTimeoutSeconds: 15,
