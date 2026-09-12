@@ -225,56 +225,7 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<{
   const { query, location, maxResults = 25, apiKey, isDemoMode = false } = params;
   const { service, city } = extractCityAndService(query, location);
 
-  // 1. If local Playwright maps engine is running (port 8787), fetch live scraped leads
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1500);
-    const localRes = await fetch('http://127.0.0.1:8787/api/leads', { signal: controller.signal });
-    clearTimeout(timeout);
-    if (localRes.ok) {
-      const localData = await localRes.json();
-      if (localData.leads && localData.leads.length > 0) {
-        const liveScrapedItems: RawPlaceItem[] = localData.leads.map((l: any, idx: number) => ({
-          id: `place-scraped-${l.placeCid || idx}`,
-          businessName: l.businessName,
-          category: l.category || service,
-          primaryCategory: l.category || service,
-          address: l.address || `${city}`,
-          city: l.city || city,
-          state: 'TX',
-          postalCode: '78704',
-          country: 'USA',
-          googleMapsUrl: (() => {
-            const u = l.googleMapsUrl || l.gbpUrl;
-            if (u && !u.includes('place//@') && !u.startsWith('@')) return u;
-            if (l.placeCid && l.placeCid.length > 5) return `https://www.google.com/maps?cid=${l.placeCid}`;
-            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${l.businessName} ${l.address || city}`)}`;
-          })(),
-          placeCid: l.placeCid,
-          isUnclaimed: Boolean(l.isUnclaimed),
-          website: l.website || undefined,
-          hasWebsite: Boolean(l.website),
-          rating: l.rating || 0.0,
-          reviewsCount: l.reviewsCount || 0,
-          businessStatus: 'OPERATIONAL',
-          photosCount: 15,
-          currentRank: l.currentRank || idx + 1,
-          phone: l.phone || undefined
-        }));
-
-        return {
-          businesses: liveScrapedItems.slice(0, maxResults),
-          service,
-          city,
-          source: 'Autonomous Google Maps Scraper (Playwright Engine)'
-        };
-      }
-    }
-  } catch {
-    // Local scraper not running or timed out; proceed with cloud places or verified benchmark
-  }
-
-  // 2. If API Key is provided or configured in env, attempt live Google Places API
+  // 1. If API Key is provided or configured in env, attempt live Google Places API
   const activeKey = apiKey || process.env.GOOGLE_PLACES_API_KEY;
   if (activeKey && activeKey !== 'demo-api-key' && activeKey !== 'test-key') {
     const liveItems = await searchLiveGooglePlaces(query, activeKey, maxResults);
@@ -288,10 +239,11 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<{
     }
   }
 
-  // 3. Real Playwright-verified Austin Emergency Dentists dataset with canonical CIDs
+  // 2. Real Playwright-verified Austin Emergency Dentists dataset (DEMO MODE ONLY)
   const isAustinDentistQuery =
-    (query.toLowerCase().includes('austin') && query.toLowerCase().includes('dentist')) ||
-    (isDemoMode && (!query || query.toLowerCase().includes('austin')));
+    isDemoMode &&
+    query.toLowerCase().includes('austin') &&
+    query.toLowerCase().includes('dentist');
 
   if (isAustinDentistQuery) {
     const realAustinProfiles: RawPlaceItem[] = [

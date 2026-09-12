@@ -85,6 +85,22 @@ export class WorkflowEngine {
     // Topological order of nodes based on edges
     const orderedNodes = this.orderNodes(workflow);
 
+    // Extract query from the first google_maps_search node's config (user's actual input)
+    const mapsNode = orderedNodes.find((n: any) => n.data?.type === 'google_maps_search');
+    const userQuery = mapsNode?.data?.config?.query || '';
+    const userLocation = mapsNode?.data?.config?.location || '';
+    const { service: parsedService, city: parsedCity } = (() => {
+      if (userLocation) {
+        const s = userQuery.replace(new RegExp(userLocation, 'gi'), '').replace(/\bin\b/gi, '').trim();
+        return { service: s || 'local services', city: userLocation };
+      }
+      const m = userQuery.match(/^(.*?)\s+in\s+(.*)$/i);
+      if (m) return { service: m[1].trim(), city: m[2].trim() };
+      const parts = userQuery.split(',');
+      if (parts.length >= 2) return { service: parts[0].trim(), city: parts.slice(1).join(',').trim() };
+      return { service: userQuery || 'local services', city: 'Local Area' };
+    })();
+
     // Context carrying data through the pipeline
     let context: {
       rawPlaces: any[];
@@ -96,9 +112,9 @@ export class WorkflowEngine {
     } = {
       rawPlaces: [],
       businesses: [],
-      query: 'Emergency Dentists in Austin, TX',
-      city: 'Austin, TX',
-      service: 'emergency dentists',
+      query: userQuery || 'local services',
+      city: parsedCity,
+      service: parsedService,
       completedLeads: []
     };
 
@@ -239,12 +255,102 @@ export class WorkflowEngine {
 
     switch (nodeType) {
       case 'google_maps_search': {
-        const query = config.query || 'Emergency Dentists in Austin, TX';
-        const location = config.location || 'Austin, TX';
+        const query = config.query?.trim();
+        const location = config.location?.trim();
         const maxResults = config.maxResults || 25;
 
+        if (!query) {
+          log('ERROR: No search query provided. Please configure the Google Maps Search node with a query like "plumbers in Chicago, IL".', 'error');
+          throw new Error('No search query configured. Open the Google Maps Search node and enter your query.');
+        }
+
         log(`Querying Google Maps for "${query}" (Max: ${maxResults})...`);
-        const mapsRes = await searchGoogleMaps({ query, location, maxResults, isDemoMode: true });
+
+        // Try to trigger a LIVE scrape via the local Playwright engine first
+        let mapsRes: any = null;
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3000);
+          const localCheck = await fetch('http://127.0.0.1:8787/api/status', { signal: controller.signal });
+          clearTimeout(timeout);
+          if (localCheck.ok) {
+            const statusData = await localCheck.json();
+            // Local scraper is available — trigger a fresh scrape with the user's query
+            log(`Local Playwright engine detected. Launching live scrape for "${query}"...`);
+            const searchRes = await fetch('http://127.0.0.1:8787/api/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query, limit: maxResults, sender: config.senderName || 'Anuj' })
+            });
+            if (searchRes.ok) {
+              log('Live scrape started. Polling for results (this may take 1-3 minutes)...');
+              // Poll until pipeline finishes
+              let pollCount = 0;
+              const maxPolls = 120; // 4 minutes max
+              while (pollCount < maxPolls) {
+                await new Promise(r => setTimeout(r, 2000));
+                pollCount++;
+                try {
+                  const pollRes = await fetch('http://127.0.0.1:8787/api/status');
+                  if (pollRes.ok) {
+                    const st = await pollRes.json();
+                    if (st.status === 'completed') {
+                      log(`Live scrape completed: ${st.message}`, 'success');
+                      // Fetch the freshly scraped leads
+                      const leadsRes = await fetch('http://127.0.0.1:8787/api/leads');
+                      if (leadsRes.ok) {
+                        const leadsData = await leadsRes.json();
+                        const freshLeads = leadsData.leads || leadsData;
+                        if (Array.isArray(freshLeads) && freshLeads.length > 0) {
+                          ctx.rawPlaces = freshLeads.map((l: any, idx: number) => ({
+                            id: l.id || `place-scraped-${l.placeCid || idx}`,
+                            businessName: l.businessName,
+                            category: l.category || ctx.service,
+                            primaryCategory: l.category || ctx.service,
+                            address: l.address || ctx.city,
+                            city: l.city || ctx.city,
+                            state: l.state || '',
+                            postalCode: l.postalCode || '',
+                            country: l.country || 'USA',
+                            googleMapsUrl: l.googleMapsUrl || l.gbpUrl,
+                            placeCid: l.placeCid,
+                            isUnclaimed: Boolean(l.isUnclaimed),
+                            website: l.website,
+                            hasWebsite: Boolean(l.website),
+                            rating: l.rating || 0,
+                            reviewsCount: l.reviewsCount || 0,
+                            businessStatus: 'OPERATIONAL',
+                            photosCount: l.photosCount || 10,
+                            currentRank: l.currentRank || idx + 1,
+                            phone: l.phone
+                          }));
+                          ctx.query = query;
+                          ctx.service = leadsData.service || ctx.service;
+                          ctx.city = leadsData.city || ctx.city;
+                          log(`Got ${ctx.rawPlaces.length} live-scraped businesses from Playwright engine`, 'success');
+                          return ctx;
+                        }
+                      }
+                      break;
+                    } else if (st.status === 'error') {
+                      log(`Local scraper error: ${st.error || st.message}. Falling back to cloud search...`, 'warn');
+                      break;
+                    } else if (st.status === 'running') {
+                      if (pollCount % 5 === 0) {
+                        log(`Scrape in progress: ${st.stageName || 'Working'} (${st.percent || 0}%)...`);
+                      }
+                    }
+                  }
+                } catch { /* poll error, continue */ }
+              }
+            }
+          }
+        } catch {
+          // Local scraper not available, proceed with cloud fallback
+        }
+
+        // Fallback: use the cloud maps provider (Google Places API or dynamic generator)
+        mapsRes = await searchGoogleMaps({ query, location, maxResults, isDemoMode: false });
 
         ctx.rawPlaces = mapsRes.businesses;
         ctx.query = query;
