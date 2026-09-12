@@ -199,8 +199,11 @@ class MapsScraper:
                 except Exception:
                     pass
 
+            # Clamp max_results to max 25 for fast response time matching Apify
+            max_results = min(max_results, 25)
+
             # Scroll feed to populate target number of listings
-            scroll_attempts = max(3, (max_results // 3) + 2)
+            scroll_attempts = min(8, max(2, (max_results // 3) + 1))
             print(f"[*] Scrolling feed ({scroll_attempts} passes) to load listings...")
             for _ in range(scroll_attempts):
                 if feed:
@@ -210,7 +213,7 @@ class MapsScraper:
                         pass
                 else:
                     page.mouse.wheel(0, 1000)
-                time.sleep(1.0)
+                time.sleep(0.5)
 
             # Query all listing cards in feed
             cards = page.query_selector_all('div[role="feed"] div.Nv2PK')
@@ -305,7 +308,7 @@ class MapsScraper:
                         inspect_page.wait_for_selector('h1.DUwDvf, h1, div[role="main"]', timeout=7000)
                     except Exception:
                         pass
-                    time.sleep(1.8)
+                    time.sleep(0.4)
 
                     current_url = inspect_page.url
 

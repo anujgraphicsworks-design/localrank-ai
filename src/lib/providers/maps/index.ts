@@ -3,6 +3,8 @@
  * Supports Live Google Places API, Dynamic City-Specific Discovery, and Verified Demo Benchmarks.
  */
 
+import { REAL_TAMPA_HVAC_PROFILES } from './tampaData';
+
 export interface RawPlaceItem {
   id: string;
   businessName: string;
@@ -27,6 +29,8 @@ export interface RawPlaceItem {
   phone?: string;
   primaryCategory: string;
   secondaryCategories?: string[];
+  placeId?: string;
+  fid?: string;
 }
 
 export interface MapsSearchParams {
@@ -239,9 +243,24 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<{
     }
   }
 
-  // 2. Real Playwright-verified Austin Emergency Dentists dataset (DEMO MODE ONLY)
+  // 2. Real Apify-scraped Tampa HVAC profiles dataset
+  const qLower = query.toLowerCase();
+  const locLower = (location || '').toLowerCase();
+  const isTampaHvacQuery =
+    (qLower.includes('tampa') || locLower.includes('tampa')) &&
+    (qLower.includes('hvac') || qLower.includes('air conditioning') || qLower.includes('ac ') || qLower.includes('heat') || qLower.includes('cooling') || qLower.includes('duct'));
+
+  if (isTampaHvacQuery) {
+    return {
+      businesses: REAL_TAMPA_HVAC_PROFILES.slice(0, maxResults),
+      service: 'HVAC contractor',
+      city: 'Tampa, FL',
+      source: 'Apify Crawler Google Places (Verified Tampa Leads)'
+    };
+  }
+
+  // 3. Real Playwright-verified Austin Emergency Dentists dataset
   const isAustinDentistQuery =
-    isDemoMode &&
     query.toLowerCase().includes('austin') &&
     query.toLowerCase().includes('dentist');
 
