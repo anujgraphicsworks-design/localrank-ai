@@ -325,6 +325,10 @@ export interface BusinessLead {
   postalCode: string;
   country: string;
   googleMapsUrl: string;
+  placeCid?: string;
+  isUnclaimed?: boolean;
+  phone?: string;
+  whatLacks?: string[];
   website?: string;
   hasWebsite: boolean;
   rating: number;

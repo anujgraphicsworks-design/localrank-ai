@@ -273,13 +273,36 @@ export function LeadTable({ leads }: LeadTableProps) {
 
                       {/* Business Name */}
                       <td className="p-3.5">
-                        <div className="font-semibold text-zinc-100 group-hover:text-emerald-400 transition-colors">
-                          {lead.businessName}
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-zinc-100 group-hover:text-emerald-400 transition-colors">
+                            {lead.businessName}
+                          </span>
+                          {lead.isUnclaimed && (
+                            <span className="px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-[9px] font-bold text-rose-300">
+                              UNCLAIMED
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-zinc-300 flex items-center gap-1.5 mt-0.5">
                           <span>{lead.category}</span>
                           <span>•</span>
                           <span>{lead.city}, {lead.state}</span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <a
+                            href={lead.googleMapsUrl || (lead.placeCid ? `https://www.google.com/maps?cid=${lead.placeCid}` : undefined)}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 font-medium hover:underline bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20"
+                            title={`Open Canonical Google Business Profile (CID: ${lead.placeCid || 'Direct'})`}
+                          >
+                            <span>📍 Open GBP</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                          {lead.phone && (
+                            <span className="text-[10px] text-zinc-400 font-mono">{lead.phone}</span>
+                          )}
                         </div>
                       </td>
 

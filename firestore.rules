@@ -23,6 +23,16 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    // Direct leads database
+    match /leads/{leadId} {
+      allow read, write: if true;
+    }
+
+    // Direct executions log
+    match /executions/{executionId} {
+      allow read, write: if true;
+    }
+
     // Workspace boundaries
     match /workspaces/{workspaceId} {
       allow read, write: if isWorkspaceMember(workspaceId);

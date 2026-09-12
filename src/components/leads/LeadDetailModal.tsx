@@ -170,16 +170,34 @@ export function LeadDetailModal({ lead, isOpen, onClose, onDeleteLead }: LeadDet
                     <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>{lead.address}</span>
                   </div>
-                  {lead.googleMapsUrl && (
-                    <a
-                      href={lead.googleMapsUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-emerald-400 hover:underline pt-1"
-                    >
-                      <span>View on Google Maps</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                  {lead.phone && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="font-mono">{lead.phone}</span>
+                    </div>
+                  )}
+                  {(lead.googleMapsUrl || lead.placeCid) && (
+                    <div className="pt-2 space-y-1.5">
+                      <a
+                        href={lead.googleMapsUrl || `https://www.google.com/maps?cid=${lead.placeCid}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-xs font-semibold transition-colors"
+                      >
+                        <span>📍 Open Google Business Profile</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      {lead.placeCid && (
+                        <div className="text-[10px] text-zinc-400 font-mono">
+                          Place CID: <span className="text-zinc-200">{lead.placeCid}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {lead.isUnclaimed && (
+                    <div className="p-2.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold mt-2">
+                      🚨 Unclaimed Business Profile on Google Maps
+                    </div>
                   )}
                 </div>
               </div>

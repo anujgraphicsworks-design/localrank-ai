@@ -1,0 +1,154 @@
+{
+  "name": "Google Maps Local SEO Audit & Cold Outreach Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "leadgen-pipeline",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "node-trigger-webhook",
+      "name": "Webhook Trigger (Input Query)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare Search Parameters\nconst query = $json.query || 'emergency dentists in Austin';\nconst senderName = $json.senderName || 'Anuj';\nconst maxResults = $json.maxResults || 15;\n\n// Heuristic extraction of service and city\nlet primaryService = 'local services';\nlet city = 'your city';\n\nconst inMatch = query.match(/^(.*?)\\s+in\\s+(.*)$/i);\nif (inMatch) {\n  primaryService = inMatch[1].trim();\n  city = inMatch[2].trim();\n} else {\n  const parts = query.split(',');\n  if (parts.length >= 2) {\n    primaryService = parts[0].trim();\n    city = parts[1].trim();\n  } else {\n    primaryService = query;\n  }\n}\n\nreturn [{\n  json: {\n    query,\n    primaryService,\n    city,\n    senderName,\n    maxResults,\n    encodedQuery: encodeURIComponent(query)\n  }\n}];"
+      },
+      "id": "node-parse-input",
+      "name": "Parse Query & Parameters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://127.0.0.1:8787/api/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.query }}\",\n  \"limit\": {{ $json.maxResults }},\n  \"sender\": \"{{ $json.senderName }}\"\n}",
+        "options": {}
+      },
+      "id": "node-maps-scraper",
+      "name": "Maps Scraper & Rank Tracker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Unpack leads and benchmark from scraper output\nconst data = $input.first().json;\nconst benchmark = data.benchmark || { top3AvgReviews: 120, top3AvgRating: 4.8 };\nconst leads = data.leads || [];\n\nreturn leads.map((lead, index) => {\n  return {\n    json: {\n      ...lead,\n      benchmark\n    }\n  };\n});"
+      },
+      "id": "node-split-leads",
+      "name": "Split Listings into Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate Ranking Gap, Practical Timeline (Days) & Action Plan\nconst item = $json;\nconst rank = item.currentRank || 1;\nconst reviews = item.reviewsCount || 0;\nconst rating = item.rating || 0.0;\nconst hasWebsite = item.hasRealWebsite || false;\nconst isUnclaimed = item.isUnclaimed || false;\nconst gbpUrl = item.gbpUrl || item.mapsUrl || `https://www.google.com/maps?cid=${item.placeCid || ''}`;\nconst category = item.category || item.primaryService || 'Local Business';\nconst city = item.city || 'Local Area';\nconst top3AvgReviews = item.benchmark ? item.benchmark.top3AvgReviews : 100;\n\nconst reviewDeficit = Math.max(0, Math.round(top3AvgReviews - reviews));\n\n// Calculate realistic timeline in days\nlet daysToTop3 = 45;\nlet practicalTimeline = '30-45 Days (Category Tuning & Review Velocity)';\n\nif (isUnclaimed || !hasWebsite || reviewDeficit > 100) {\n  daysToTop3 = 90;\n  practicalTimeline = '75-90 Days (Profile Rebuild & Review Acceleration)';\n} else if (reviewDeficit > 40) {\n  daysToTop3 = 60;\n  practicalTimeline = '45-60 Days (Citation Sync & Review Push)';\n} else if (rank <= 3) {\n  daysToTop3 = 30;\n  practicalTimeline = '15-30 Days (Rank Retention & Conversion)';\n}\n\n// What lacks\nconst whatLacks = [];\nif (isUnclaimed) {\n  whatLacks.push('Profile Ownership Void: Google Business Profile is UNCLAIMED — highly vulnerable and unverified.');\n}\nif (rank > 3) {\n  whatLacks.push(`Rank Deficit: Ranked #${rank}, missing out on top 3-pack search traffic.`);\n}\nif (reviewDeficit > 0) {\n  whatLacks.push(`Review Deficit: Trails Top 3 competitors by ~${reviewDeficit} reviews.`);\n}\nif (!hasWebsite) {\n  whatLacks.push('Domain Penalty: No dedicated website connected to Google Business Profile.');\n  whatLacks.push('Conversion Void: Zero digital lead-capture funnel.');\n} else {\n  whatLacks.push('Schema Deficit: Missing LocalBusiness schema with verified geo-data.');\n  whatLacks.push('Lead Automation Gap: Missing automated instant lead-capture response.');\n}\n\n// Action Plan\nconst actionPlan = {\n  phase1: 'Days 1-15: Lock in primary GMB category, audit description, trigger automated SMS review campaign.',\n  phase2: `Days 16-45: NAP citation syndication across 40 directories, ${hasWebsite ? 'on-page local schema injection' : 'launch mobile lead-capture landing page'}.`,\n  phase3: `Days 46-${daysToTop3}: Missed-call text-back automation, review velocity maintenance (8-12/mo).`\n};\n\nreturn {\n  json: {\n    ...item,\n    gbpUrl,\n    audit: {\n      currentRank: rank,\n      reviewDeficit,\n      daysToTop3,\n      practicalTimeline,\n      whatLacks,\n      actionPlan\n    }\n  }\n};"
+      },
+      "id": "node-audit-gap-plan",
+      "name": "Audit & Top 3 Action Plan Generator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate Personalized Cold Email strictly under 100 words adhering to proven template\nconst item = $json;\nconst enrichment = item.enrichment || {};\nconst firstName = (enrichment.firstName && enrichment.firstName !== 'there') ? enrichment.firstName : 'there';\nconst businessName = item.businessName || 'your business';\nconst primaryService = item.primaryService || 'services';\nconst city = item.city || 'your area';\nconst currentRank = item.currentRank || 8;\nconst yourName = item.senderName || 'Anuj';\n\nconst subject = (firstName !== 'there') \n  ? `${firstName}, check ${businessName} on Google rn` \n  : `Check ${businessName} on Google rn`;\n\nconst body = `Hey ${firstName},\n\nCame across ${businessName} while searching for ${primaryService} in ${city} last week.\n\nWhile looking into it, I noticed you're sitting at #${currentRank} on Google Maps, meaning the top 3 spots are taking virtually all the inbound calls, clicks, and bookings.\n\nDoing the math, being outside the 3-pack is probably costing you dozens of high-value leads every single month.\n\nSo, I put together an action plan to get ${businessName} into the Top 3 on Google Maps, plus built out automated lead-capture workflows so you instantly lock in leads and stop wasting hours on repetitive follow-ups and manual tasks.\n\nIt's yours. Already mapped out & ready to go.\n\nReply and I'll hand it over.\n\nBest,\n\n${yourName}`;\n\n// Count words\nconst wordTokens = body.match(/\\b[\\w'-]+\\b/g) || [];\nconst wordCount = wordTokens.length;\n\nreturn {\n  json: {\n    ...item,\n    coldEmail: {\n      subject,\n      body,\n      wordCount,\n      isUnder100Words: wordCount < 100,\n      recipientEmail: enrichment.primaryEmail || null,\n      channel: enrichment.primaryEmail ? 'Email' : (enrichment.instagram ? 'Instagram DM' : (enrichment.facebook ? 'Facebook Messenger' : 'Direct Outreach'))\n    }\n  }\n};"
+      },
+      "id": "node-cold-email-generator",
+      "name": "Synthesize Cold Email (<100 words)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 300]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "node-respond-data",
+      "name": "Output Leads & Cold Outreach",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1400, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger (Input Query)": {
+      "main": [
+        [
+          {
+            "node": "Parse Query & Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Query & Parameters": {
+      "main": [
+        [
+          {
+            "node": "Maps Scraper & Rank Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Maps Scraper & Rank Tracker": {
+      "main": [
+        [
+          {
+            "node": "Split Listings into Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Listings into Items": {
+      "main": [
+        [
+          {
+            "node": "Audit & Top 3 Action Plan Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit & Top 3 Action Plan Generator": {
+      "main": [
+        [
+          {
+            "node": "Synthesize Cold Email (<100 words)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Synthesize Cold Email (<100 words)": {
+      "main": [
+        [
+          {
+            "node": "Output Leads & Cold Outreach",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
