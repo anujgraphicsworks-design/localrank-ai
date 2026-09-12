@@ -11,6 +11,7 @@ Deeply inspects Google Business Profiles (GBP) one by one in headless Playwright
 import time
 import re
 import urllib.parse
+from datetime import datetime
 from playwright.sync_api import sync_playwright
 
 SOCIAL_DOMAINS = [
@@ -39,6 +40,46 @@ def extract_city_and_service(query):
         return parts[0].strip(), parts[1].strip()
         
     return clean_q, "your local area"
+
+def parse_address_parts(full_addr: str, default_city: str = ""):
+    if not full_addr:
+        return {"street": "", "city": default_city, "state": "", "postalCode": "", "country": "United States"}
+    street = full_addr
+    city = default_city
+    state = ""
+    postal_code = ""
+    country = "United States"
+    
+    parts = [p.strip() for p in full_addr.split(',') if p.strip()]
+    if len(parts) >= 4:
+        street = parts[0]
+        city = parts[1]
+        state_zip = parts[2].split()
+        if len(state_zip) >= 2:
+            state = state_zip[0]
+            postal_code = state_zip[1]
+        elif len(state_zip) == 1:
+            state = state_zip[0]
+        country = parts[3]
+    elif len(parts) == 3:
+        street = parts[0]
+        city = parts[1]
+        state_zip = parts[2].split()
+        if len(state_zip) >= 2:
+            state = state_zip[0]
+            postal_code = state_zip[1]
+        elif len(state_zip) == 1:
+            state = parts[2]
+    elif len(parts) == 2:
+        street = parts[0]
+        city = parts[1]
+    return {
+        "street": street,
+        "city": city,
+        "state": state,
+        "postalCode": postal_code,
+        "country": country
+    }
 
 def sanitize_and_verify_url(candidate_url: str, business_name: str = "", address: str = "", city: str = ""):
     """
@@ -273,13 +314,24 @@ class MapsScraper:
                     if h1_el and clean_text(h1_el.inner_text()):
                         title = clean_text(h1_el.inner_text())
 
-                    # 2. Extract Place CID from URL
+                    # 2. Extract Place CID, FID, PlaceID, and Lat/Lng from current URL
+                    m_fid = re.search(r'(0x[0-9a-fA-F]+:0x[0-9a-fA-F]+)', current_url)
+                    fid = m_fid.group(1) if m_fid else None
+
                     m_cid = re.search(r'0x[0-9a-fA-F]+:(0x[0-9a-fA-F]+)', current_url)
                     if m_cid:
                         try:
                             cid_dec = str(int(m_cid.group(1), 16))
                         except Exception:
                             pass
+
+                    m_lat = re.search(r'!3d(-?\d+\.\d+)', current_url)
+                    m_lng = re.search(r'!4d(-?\d+\.\d+)', current_url)
+                    lat = float(m_lat.group(1)) if m_lat else None
+                    lng = float(m_lng.group(1)) if m_lng else None
+
+                    m_pid = re.search(r'!19s(ChIJ[a-zA-Z0-9_-]+)', current_url)
+                    place_id = m_pid.group(1) if m_pid else None
 
                     # 3. Category from Profile
                     cat_btn = inspect_page.query_selector('button[jsaction*="category"], button.DkEaL')
@@ -307,7 +359,7 @@ class MapsScraper:
                             except Exception:
                                 pass
 
-                    # 5. Full Address from Profile
+                    # 5. Full Address & Plus Code from Profile
                     addr_btn = inspect_page.query_selector('button[data-item-id="address"], button[aria-label*="Address"]')
                     if addr_btn:
                         a_txt = addr_btn.get_attribute('aria-label') or addr_btn.inner_text()
@@ -315,13 +367,18 @@ class MapsScraper:
                         m_a = re.search(r'Address:\s*(.*)', a_txt, re.IGNORECASE)
                         address = m_a.group(1).strip() if m_a else clean_text(a_txt)
 
-                    # 6. Phone Number from Profile
+                    plus_btn = inspect_page.query_selector('button[data-item-id="oloc"], button[aria-label*="plus code"], button[aria-label*="Plus code"]')
+                    plus_code = re.sub(r'[\ue000-\uf8ff]', '', plus_btn.inner_text()).strip() if plus_btn else None
+
+                    # 6. Phone Number from Profile (Formatted + Unformatted)
                     phone_btn = inspect_page.query_selector('button[data-item-id*="phone"], button[aria-label*="Phone"]')
                     if phone_btn:
                         p_txt = phone_btn.get_attribute('aria-label') or phone_btn.inner_text()
                         p_txt = re.sub(r'[\ue000-\uf8ff]', '', p_txt)
                         m_p = re.search(r'Phone:\s*(.*)', p_txt, re.IGNORECASE)
                         phone = m_p.group(1).strip() if m_p else clean_text(p_txt)
+
+                    phone_unformatted = re.sub(r'[^\d+]', '', phone) if phone else ""
 
                     # 7. Official Website from Profile
                     web_btn = inspect_page.query_selector('a[data-item-id="authority"], a[aria-label*="Website"], a[aria-label*="website"], a[aria-label*="Open website"]')
@@ -385,28 +442,74 @@ class MapsScraper:
                             address = line
                             break
 
+                addr_parts = parse_address_parts(address, city)
+                street = addr_parts.get("street", "")
+                city_resolved = addr_parts.get("city", "") or city
+                state = addr_parts.get("state", "")
+                postal_code = addr_parts.get("postalCode", "")
+                country = addr_parts.get("country", "United States")
+
                 has_real_website = bool(website_url and not any(soc in website_url.lower() for soc in SOCIAL_DOMAINS))
 
                 business_data = {
-                    "currentRank": current_rank,
-                    "isSponsored": is_sponsored,
+                    # Core Identifiers & Names
+                    "title": title,
                     "businessName": title,
-                    "rating": rating,
-                    "reviewsCount": reviews_count,
+                    "subTitle": category or primary_service,
+                    "rank": current_rank,
+                    "currentRank": current_rank,
+                    "isAdvertisement": is_sponsored,
+                    "isSponsored": is_sponsored,
+                    
+                    # Categories
+                    "categoryName": category or primary_service,
                     "category": category or primary_service,
+                    "categories": [category] if category else [primary_service],
                     "primaryService": primary_service,
-                    "city": city,
+                    
+                    # Address & Geolocation (Apify schema compliant)
                     "address": address or f"{city}",
+                    "street": street,
+                    "city": city_resolved,
+                    "state": state,
+                    "postalCode": postal_code,
+                    "country": country,
+                    "countryCode": "US",
+                    "location": {"lat": lat, "lng": lng} if (lat is not None and lng is not None) else None,
+                    "plusCode": plus_code,
+                    
+                    # Contact Information
                     "phone": phone or "Not publicly listed",
+                    "phoneUnformatted": phone_unformatted or phone or "",
                     "website": website_url,
                     "hasWebsite": bool(website_url),
                     "hasRealWebsite": has_real_website,
+                    
+                    # Ratings & Reviews
+                    "totalScore": rating,
+                    "rating": rating,
+                    "reviewsCount": reviews_count,
+                    
+                    # Status & Hours
+                    "claimThisBusiness": is_unclaimed,
+                    "isUnclaimed": is_unclaimed,
+                    "openingHours": opening_hours or "Check profile for hours",
+                    "businessStatus": "OPERATIONAL",
+                    
+                    # Place Identifiers (Apify exact schema)
+                    "fid": fid,
+                    "cid": cid_dec,
+                    "placeCid": cid_dec,
+                    "placeId": place_id,
+                    
+                    # Canonical Links
+                    "url": current_url,
+                    "shareUrl": verified_gbp_url,
                     "gbpUrl": verified_gbp_url,
                     "mapsUrl": verified_gbp_url,
                     "googleMapsUrl": verified_gbp_url,
-                    "placeCid": cid_dec,
-                    "isUnclaimed": is_unclaimed,
-                    "openingHours": opening_hours or "Check profile for hours"
+                    "searchString": query,
+                    "scrapedAt": datetime.now().isoformat()
                 }
 
                 if is_sponsored:
