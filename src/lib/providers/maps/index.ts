@@ -59,7 +59,17 @@ export function extractCityAndService(query: string, locationParam?: string): { 
     return { service: parts[0].trim(), city: parts[1].trim() };
   }
 
-  return { service: query.trim(), city: 'Austin, TX' };
+  const qLower = query.toLowerCase();
+  const knownCities = ['tampa', 'dallas', 'austin', 'miami', 'orlando', 'chicago', 'houston', 'atlanta', 'denver', 'phoenix', 'seattle', 'boston', 'san antonio', 'san diego'];
+  for (const c of knownCities) {
+    if (qLower.includes(c)) {
+      const s = query.replace(new RegExp(`\\b${c}\\b`, 'gi'), '').replace(/\bin\b/gi, '').trim();
+      const cityTitle = c.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { service: s || query.trim(), city: cityTitle };
+    }
+  }
+
+  return { service: query.trim(), city: 'Tampa, FL' };
 }
 
 // --------------------------------------------------------------------------
