@@ -52,7 +52,20 @@ export async function getLeads(workspaceId: string = 'ws-default'): Promise<Busi
         return remoteLeads.filter((l) => !workspaceId || l.workspaceId === workspaceId);
       }
     } catch (err) {
-      console.warn('Firestore getLeads fallback to local storage:', err);
+      console.warn('Firestore getLeads fallback:', err);
+    }
+
+    try {
+      const res = await fetch('/api/leads');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.leads && json.leads.length > 0) {
+          setStorageItem('leads', json.leads);
+          return json.leads.filter((l: any) => !workspaceId || l.workspaceId === workspaceId);
+        }
+      }
+    } catch (apiErr) {
+      console.warn('API getLeads fallback warning:', apiErr);
     }
   }
 

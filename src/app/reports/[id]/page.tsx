@@ -109,7 +109,7 @@ export default function ClientReportPage() {
           <div className="p-4 rounded-xl bg-zinc-950/80 print:bg-gray-50 border border-zinc-800 print:border-gray-200">
             <div className="text-[10px] text-zinc-400 print:text-gray-600 uppercase font-semibold">Implementation Time</div>
             <div className="text-lg font-bold font-mono text-zinc-100 print:text-black mt-1">
-              {plan?.timelineLabel.split('(')[0] || '45-60 Days'}
+              {(plan?.timelineLabel || (plan as any)?.timelineSummary || '45-60 Days').split('(')[0]}
             </div>
             <div className="text-[10px] text-zinc-500 mt-1">3-Phase Action Sprint</div>
           </div>

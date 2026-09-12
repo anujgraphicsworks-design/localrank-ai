@@ -179,7 +179,14 @@ export function LeadDetailModal({ lead, isOpen, onClose, onDeleteLead }: LeadDet
                   {(lead.googleMapsUrl || lead.placeCid) && (
                     <div className="pt-2 space-y-1.5">
                       <a
-                        href={lead.googleMapsUrl || `https://www.google.com/maps?cid=${lead.placeCid}`}
+                        href={
+                          (() => {
+                            const u = lead.googleMapsUrl;
+                            if (u && !u.includes('place//@') && !u.startsWith('@')) return u;
+                            if (lead.placeCid && lead.placeCid.length > 5) return `https://www.google.com/maps?cid=${lead.placeCid}`;
+                            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lead.businessName} ${lead.address || lead.city}`)}`;
+                          })()
+                        }
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-xs font-semibold transition-colors"
@@ -588,7 +595,7 @@ export function LeadDetailModal({ lead, isOpen, onClose, onDeleteLead }: LeadDet
                   <div key={item.id} className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-emerald-400">{item.finding}</span>
-                      <span className="text-[10px] font-mono text-zinc-400">{item.observedAt.split('T')[0]}</span>
+                      <span className="text-[10px] font-mono text-zinc-400">{item.observedAt?.split('T')[0] || 'Recently'}</span>
                     </div>
                     <div className="text-[11px] text-zinc-400 flex items-center gap-2 font-mono">
                       <span>Source: {item.source}</span>

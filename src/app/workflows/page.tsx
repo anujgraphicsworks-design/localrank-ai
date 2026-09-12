@@ -77,7 +77,7 @@ export default async function WorkflowsListPage() {
                 </Link>
 
                 <span className="text-[10px] text-zinc-500 font-mono">
-                  Updated: {wf.updatedAt.split('T')[0]}
+                  Updated: {wf.updatedAt?.split('T')[0] || 'Recently'}
                 </span>
               </div>
             </div>

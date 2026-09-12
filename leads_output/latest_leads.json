@@ -1,0 +1,367 @@
+{
+  "query": "emergency dentists in Austin",
+  "generatedAt": "2026-09-12T09:53:57.861165",
+  "leads": [
+    {
+      "currentRank": 1,
+      "businessName": "Austin Dental Works",
+      "placeCid": "8726852563881499337",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=8726852563881499337",
+      "rating": 4.9,
+      "reviewsCount": 215,
+      "address": "4611 Burnet Rd, Austin, TX 78756",
+      "phone": "+1 512-454-5219",
+      "website": "https://austindentalworks.com",
+      "hasRealWebsite": true,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 15,
+        "timelineLabel": "15 Days (Rank Retention & Review Moat)",
+        "reviewGapToTop3": 0,
+        "whatLacks": [
+          "Missing automated 24/7 missed-call lead capture widget on mobile"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 0-review deficit.",
+          "Phase 3 (Days 21-15): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 95
+      },
+      "enrichment": {
+        "firstName": "there",
+        "decisionMakerName": "Front Desk / Owner",
+        "primaryEmail": "info@austindentalworks.com",
+        "instagram": "https://www.instagram.com/austindentalworks",
+        "facebook": "https://www.facebook.com/AustinDentalWorks",
+        "emailFound": true
+      },
+      "coldEmail": {
+        "subject": "Check Austin Dental Works on Google rn",
+        "body": "Hey there,\n\nCame across Austin Dental Works while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #1 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Austin Dental Works into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 89,
+        "isUnder100Words": true,
+        "recipientEmail": "info@austindentalworks.com",
+        "contactChannel": "Email"
+      }
+    },
+    {
+      "currentRank": 2,
+      "businessName": "Austin Emergency Dental",
+      "placeCid": "10235853594185523657",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=10235853594185523657",
+      "rating": 4.8,
+      "reviewsCount": 182,
+      "address": "13492 Research Blvd #100, Austin, TX 78750",
+      "phone": "+1 512-890-3444",
+      "website": "https://emergencydentalaustin.com",
+      "hasRealWebsite": true,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 15,
+        "timelineLabel": "15 Days (Rank Retention & Review Moat)",
+        "reviewGapToTop3": 0,
+        "whatLacks": [
+          "Missing automated 24/7 missed-call lead capture widget on mobile"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 0-review deficit.",
+          "Phase 3 (Days 21-15): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 94
+      },
+      "enrichment": {
+        "firstName": "there",
+        "decisionMakerName": "Front Desk / Owner",
+        "primaryEmail": "admin@emergencydentalaustin.com",
+        "instagram": "",
+        "facebook": "",
+        "emailFound": true
+      },
+      "coldEmail": {
+        "subject": "Check Austin Emergency Dental on Google rn",
+        "body": "Hey there,\n\nCame across Austin Emergency Dental while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #2 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Austin Emergency Dental into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 89,
+        "isUnder100Words": true,
+        "recipientEmail": "admin@emergencydentalaustin.com",
+        "contactChannel": "Email"
+      }
+    },
+    {
+      "currentRank": 3,
+      "businessName": "Dr. Conor Perrin Emergency Dental Service",
+      "placeCid": "2107337486137333730",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=2107337486137333730",
+      "rating": 4.6,
+      "reviewsCount": 94,
+      "address": "3901 S Lamar Blvd #420, Austin, TX 78704",
+      "phone": "+1 737-738-7277",
+      "website": "",
+      "hasRealWebsite": false,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 15,
+        "timelineLabel": "15 Days (Rank Retention & Review Moat)",
+        "reviewGapToTop3": 69,
+        "whatLacks": [
+          "NO website connected to Google Business Profile (leads drop off to competitors)",
+          "Review deficit: 69 reviews behind Top 3 leaders"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 69-review deficit.",
+          "Phase 3 (Days 21-15): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 95
+      },
+      "enrichment": {
+        "firstName": "Dr. Conor",
+        "decisionMakerName": "Dr. Conor",
+        "primaryEmail": "",
+        "instagram": "",
+        "facebook": "",
+        "emailFound": false
+      },
+      "coldEmail": {
+        "subject": "Dr. Conor, check Dr. Conor Perrin Emergency Dental Service on Google rn",
+        "body": "Hey Dr. Conor,\n\nCame across Dr. Conor Perrin Emergency Dental Service while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #3 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Dr. Conor Perrin Emergency Dental Service into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 96,
+        "isUnder100Words": true,
+        "recipientEmail": "",
+        "contactChannel": "Direct Outreach / SMS"
+      }
+    },
+    {
+      "currentRank": 4,
+      "businessName": "Dr. Mark Davidson Emergency Dental Service",
+      "placeCid": "4286758627269761960",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=4286758627269761960",
+      "rating": 4.3,
+      "reviewsCount": 68,
+      "address": "2501 S Congress Ave, Austin, TX 78704",
+      "phone": "+1 903-857-7900",
+      "website": "",
+      "hasRealWebsite": false,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 30,
+        "timelineLabel": "30 Days (Fast-Track 3-Pack Ascension)",
+        "reviewGapToTop3": 95,
+        "whatLacks": [
+          "NO website connected to Google Business Profile (leads drop off to competitors)",
+          "Review deficit: 95 reviews behind Top 3 leaders",
+          "Rating (4.3\u2605) is under the 4.7\u2605 3-Pack trust threshold"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 95-review deficit.",
+          "Phase 3 (Days 21-30): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 95
+      },
+      "enrichment": {
+        "firstName": "Dr. Mark",
+        "decisionMakerName": "Dr. Mark",
+        "primaryEmail": "",
+        "instagram": "",
+        "facebook": "",
+        "emailFound": false
+      },
+      "coldEmail": {
+        "subject": "Dr. Mark, check Dr. Mark Davidson Emergency Dental Service on Google rn",
+        "body": "Hey Dr. Mark,\n\nCame across Dr. Mark Davidson Emergency Dental Service while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #4 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Dr. Mark Davidson Emergency Dental Service into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 96,
+        "isUnder100Words": true,
+        "recipientEmail": "",
+        "contactChannel": "Direct Outreach / SMS"
+      }
+    },
+    {
+      "currentRank": 5,
+      "businessName": "Austin Primary Dental",
+      "placeCid": "6510972559064028443",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=6510972559064028443",
+      "rating": 4.5,
+      "reviewsCount": 114,
+      "address": "1201 W 38th St, Austin, TX 78705",
+      "phone": "+1 512-808-5651",
+      "website": "https://austinprimarydental.com",
+      "hasRealWebsite": true,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 30,
+        "timelineLabel": "30 Days (Fast-Track 3-Pack Ascension)",
+        "reviewGapToTop3": 49,
+        "whatLacks": [
+          "Missing automated 24/7 missed-call lead capture widget on mobile",
+          "Review deficit: 49 reviews behind Top 3 leaders",
+          "Rating (4.5\u2605) is under the 4.7\u2605 3-Pack trust threshold"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 49-review deficit.",
+          "Phase 3 (Days 21-30): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 94
+      },
+      "enrichment": {
+        "firstName": "there",
+        "decisionMakerName": "Front Desk / Owner",
+        "primaryEmail": "info@austinprimarydental.com",
+        "instagram": "https://www.instagram.com/austinprimarydental",
+        "facebook": "https://www.facebook.com/austinprimarydental",
+        "emailFound": true
+      },
+      "coldEmail": {
+        "subject": "Check Austin Primary Dental on Google rn",
+        "body": "Hey there,\n\nCame across Austin Primary Dental while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #5 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Austin Primary Dental into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 89,
+        "isUnder100Words": true,
+        "recipientEmail": "info@austinprimarydental.com",
+        "contactChannel": "Email"
+      }
+    },
+    {
+      "currentRank": 6,
+      "businessName": "Dr. Eli Zimmerman Emergency Dental Service",
+      "placeCid": "11386459742115606850",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=11386459742115606850",
+      "rating": 4.1,
+      "reviewsCount": 42,
+      "address": "5500 N Interstate 35, Austin, TX 78751",
+      "phone": "+1 737-353-1100",
+      "website": "",
+      "hasRealWebsite": false,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 30,
+        "timelineLabel": "30 Days (Fast-Track 3-Pack Ascension)",
+        "reviewGapToTop3": 121,
+        "whatLacks": [
+          "NO website connected to Google Business Profile (leads drop off to competitors)",
+          "Review deficit: 121 reviews behind Top 3 leaders",
+          "Rating (4.1\u2605) is under the 4.7\u2605 3-Pack trust threshold"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 121-review deficit.",
+          "Phase 3 (Days 21-30): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 95
+      },
+      "enrichment": {
+        "firstName": "Dr. Eli",
+        "decisionMakerName": "Dr. Eli",
+        "primaryEmail": "",
+        "instagram": "",
+        "facebook": "",
+        "emailFound": false
+      },
+      "coldEmail": {
+        "subject": "Dr. Eli, check Dr. Eli Zimmerman Emergency Dental Service on Google rn",
+        "body": "Hey Dr. Eli,\n\nCame across Dr. Eli Zimmerman Emergency Dental Service while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #6 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Dr. Eli Zimmerman Emergency Dental Service into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 96,
+        "isUnder100Words": true,
+        "recipientEmail": "",
+        "contactChannel": "Direct Outreach / SMS"
+      }
+    },
+    {
+      "currentRank": 7,
+      "businessName": "Dentist in Austin.",
+      "placeCid": "307141331480248165",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=307141331480248165",
+      "rating": 3.9,
+      "reviewsCount": 27,
+      "address": "900 E 7th St, Austin, TX 78702",
+      "phone": "+1 209-315-7212",
+      "website": "",
+      "hasRealWebsite": false,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 45,
+        "timelineLabel": "45 Days (Review Velocity + Geo-Targeted Citations)",
+        "reviewGapToTop3": 136,
+        "whatLacks": [
+          "NO website connected to Google Business Profile (leads drop off to competitors)",
+          "Review deficit: 136 reviews behind Top 3 leaders",
+          "Rating (3.9\u2605) is under the 4.7\u2605 3-Pack trust threshold"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 136-review deficit.",
+          "Phase 3 (Days 21-45): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 95
+      },
+      "enrichment": {
+        "firstName": "Dentist",
+        "decisionMakerName": "Dentist",
+        "primaryEmail": "",
+        "instagram": "",
+        "facebook": "",
+        "emailFound": false
+      },
+      "coldEmail": {
+        "subject": "Dentist, check Dentist in Austin. on Google rn",
+        "body": "Hey Dentist,\n\nCame across Dentist in Austin. while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #7 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get Dentist in Austin. into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 89,
+        "isUnder100Words": true,
+        "recipientEmail": "",
+        "contactChannel": "Direct Outreach / SMS"
+      }
+    },
+    {
+      "currentRank": 8,
+      "businessName": "TRU Dentistry Austin",
+      "placeCid": "10843578219852735952",
+      "googleBusinessProfileUrl": "https://www.google.com/maps?cid=10843578219852735952",
+      "rating": 4.9,
+      "reviewsCount": 310,
+      "address": "2708 S Lamar Blvd #100A, Austin, TX 78704",
+      "phone": "+1 512-391-0011",
+      "website": "https://trudentistryaustin.com",
+      "hasRealWebsite": true,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "audit": {
+        "practicalTimelineDays": 45,
+        "timelineLabel": "45 Days (Review Velocity + Geo-Targeted Citations)",
+        "reviewGapToTop3": 0,
+        "whatLacks": [
+          "Missing automated 24/7 missed-call lead capture widget on mobile"
+        ],
+        "actionSteps": [
+          "Phase 1 (Days 1-10): Fix Google Business Profile primary category and install 30s missed-call text-back.",
+          "Phase 2 (Days 11-20): Automate post-appointment review requests via SMS to bridge the 0-review deficit.",
+          "Phase 3 (Days 21-45): Deploy mobile booking funnel and embed LocalBusiness JSON-LD schema."
+        ],
+        "opportunityScore": 76
+      },
+      "enrichment": {
+        "firstName": "there",
+        "decisionMakerName": "Front Desk / Owner",
+        "primaryEmail": "info@trudentistryaustin.com",
+        "instagram": "https://www.instagram.com/trudentistryaustin",
+        "facebook": "https://www.facebook.com/TRUDentistryAustin",
+        "emailFound": true
+      },
+      "coldEmail": {
+        "subject": "Check TRU Dentistry Austin on Google rn",
+        "body": "Hey there,\n\nCame across TRU Dentistry Austin while searching for emergency dentists in Austin.\n\nI noticed you're sitting at #8 on Google Maps \u2014 meaning the top 3 spots take virtually all inbound calls and bookings.\n\nBeing outside the 3-pack likely costs you dozens of high-value leads every month.\n\nI put together an action plan to get TRU Dentistry Austin into the Top 3 on Maps, plus automated lead-capture workflows so you instantly lock in leads without manual follow-ups.\n\nAlready mapped out. Reply and I'll hand it over.\n\nBest,\n\nAnuj",
+        "wordCount": 89,
+        "isUnder100Words": true,
+        "recipientEmail": "info@trudentistryaustin.com",
+        "contactChannel": "Email"
+      }
+    }
+  ]
+}

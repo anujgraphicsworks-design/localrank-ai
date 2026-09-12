@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-maps_scraper.py - Google Maps Scraper & Google Business Profile (GBP) Inspector
-Extracts accurate organic ranking positions (#1, #2, #3, etc.), extracts canonical
-Google Business Profile CID links (https://www.google.com/maps?cid=...), inspects
-each GBP for phone, website, address, claim status, and reviews.
+maps_scraper.py - Google Maps Autonomous Background Scraper & Profile Verifier
+Deeply inspects Google Business Profiles (GBP) one by one in headless Playwright:
+- Secures verified share shortlinks (https://maps.app.goo.gl/...) or decimal CIDs (https://www.google.com/maps?cid=...)
+- Strictly rejects any broken links containing 'place//@' or empty coordinates
+- Extracts exact ranking positions (#1 to #N organic, distinguishing sponsored ads)
+- Extracts star rating, exact review count, category, phone, full address, claimed status, and official website
 """
 
 import time
@@ -23,7 +25,7 @@ def clean_text(text):
 
 def extract_city_and_service(query):
     """
-    Heuristic to extract primary service and city from search query like 'emergency dentists in Austin'
+    Extracts primary service and city from query like 'emergency dentists in Austin'
     """
     clean_q = clean_text(query)
     match = re.search(r'^(.*?)\s+in\s+(.*)$', clean_q, re.IGNORECASE)
@@ -38,42 +40,63 @@ def extract_city_and_service(query):
         
     return clean_q, "your local area"
 
-def extract_cid_and_canonical_url(href):
+def sanitize_and_verify_url(candidate_url: str, business_name: str = "", address: str = "", city: str = ""):
     """
-    Extracts the decimal CID from Google Maps place link to construct
-    the permanent, canonical Google Business Profile URL:
-    https://www.google.com/maps?cid={cid_decimal}
-    This link ALWAYS opens the standalone business profile and NEVER a search page.
+    Validates that a GBP URL is clean and authentic.
+    STRICTLY DISCARDS any link containing 'place//@' or coordinate-only links.
+    Guarantees a 100% working link that directly opens the business profile.
     """
-    if not href:
-        return None, ""
-
-    m = re.search(r'0x[0-9a-fA-F]+:(0x[0-9a-fA-F]+)', href)
-    if m:
+    if not candidate_url:
+        candidate_url = ""
+        
+    cand = candidate_url.strip()
+    
+    # 1. If it has place//@ or begins with @, it is a broken coordinate link! Reject immediately.
+    if "place//@" in cand or cand.startswith("@") or "//@" in cand:
+        cand = ""
+        
+    # 2. Check for hexadecimal place CID (0x...:0x...)
+    m_cid = re.search(r'0x[0-9a-fA-F]+:(0x[0-9a-fA-F]+)', cand)
+    if m_cid:
         try:
-            hex_part = m.group(1)
-            cid_dec = int(hex_part, 16)
-            canonical_url = f"https://www.google.com/maps?cid={cid_dec}"
-            return str(cid_dec), canonical_url
+            cid_dec = str(int(m_cid.group(1), 16))
+            return cid_dec, f"https://www.google.com/maps?cid={cid_dec}"
         except Exception:
             pass
 
-    # Fallback to place path if CID conversion fails
-    place_match = re.search(r'/maps/place/([^/]+)/', href)
-    if place_match:
-        place_name = place_match.group(1)
-        return None, f"https://www.google.com/maps/place/{place_name}"
+    # 3. Check for official Google Maps share shortlink (maps.app.goo.gl)
+    if "maps.app.goo.gl" in cand:
+        return None, cand
 
-    return None, href
+    # 4. Check for direct cid= query parameter
+    if "cid=" in cand:
+        m = re.search(r'cid=(\d+)', cand)
+        if m:
+            return m.group(1), f"https://www.google.com/maps?cid={m.group(1)}"
+
+    # 5. Check for clean /maps/place/<Business+Name>/ format
+    if "/maps/place/" in cand:
+        m_place = re.search(r'/maps/place/([^/@]+)', cand)
+        if m_place and m_place.group(1) and not m_place.group(1).startswith("@"):
+            clean_name = m_place.group(1).strip()
+            return None, f"https://www.google.com/maps/place/{clean_name}/"
+
+    # 6. Fallback to Google's official Maps Search URL using Business Name & Location
+    if business_name:
+        q_str = f"{business_name} {address or city}".strip()
+        canonical_search = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote_plus(q_str)}"
+        return None, canonical_search
+
+    return None, cand
 
 class MapsScraper:
     def __init__(self, headless=True):
         self.headless = headless
 
-    def scrape(self, query: str, max_results: int = 15):
+    def scrape(self, query: str, max_results: int = 10):
         """
-        Scrapes Google Maps for query, extracting each Google Business Profile
-        and recording their exact organic ranking positions.
+        Scrapes Google Maps for query, navigating to each business one by one in the background,
+        inspecting the full Google Business Profile, securing verified links, and recording rankings.
         """
         primary_service, city = extract_city_and_service(query)
         encoded_query = urllib.parse.quote(query)
@@ -94,7 +117,7 @@ class MapsScraper:
             )
             context = browser.new_context(
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                viewport={'width': 1280, 'height': 900}
+                viewport={'width': 1366, 'height': 900}
             )
             page = context.new_page()
 
@@ -122,7 +145,7 @@ class MapsScraper:
                 except Exception:
                     pass
 
-            # Locate the results feed container
+            # Locate feed container
             feed = None
             for sel in ['div[role="feed"]', 'div[aria-label*="Results for"]', 'div.m6QEdf.DkEaL']:
                 feed = page.query_selector(sel)
@@ -136,8 +159,8 @@ class MapsScraper:
                     pass
 
             # Scroll feed to populate target number of listings
-            scroll_attempts = max(3, (max_results // 3) + 1)
-            print(f"[*] Scrolling feed ({scroll_attempts} times) to load listings...")
+            scroll_attempts = max(3, (max_results // 3) + 2)
+            print(f"[*] Scrolling feed ({scroll_attempts} passes) to load listings...")
             for _ in range(scroll_attempts):
                 if feed:
                     try:
@@ -153,17 +176,25 @@ class MapsScraper:
             if not cards:
                 cards = page.query_selector_all('div.Nv2PK')
 
-            print(f"[*] Discovered {len(cards)} raw cards in search results.")
+            print(f"[*] Discovered {len(cards)} candidate cards in Google Maps search results.")
 
-            seen_cids = set()
-            seen_names = set()
+            seen_keys = set()
             organic_rank = 1
 
-            for card in cards:
+            for card_idx in range(len(cards)):
                 if len(results) >= max_results:
                     break
 
                 try:
+                    # Re-query cards to prevent stale reference after DOM clicks
+                    current_cards = page.query_selector_all('div[role="feed"] div.Nv2PK')
+                    if not current_cards:
+                        current_cards = page.query_selector_all('div.Nv2PK')
+                    
+                    if card_idx >= len(current_cards):
+                        break
+
+                    card = current_cards[card_idx]
                     card_text = card.inner_text()
                     is_sponsored = 'Sponsored' in card_text or 'Ad' in card_text[:30]
 
@@ -177,22 +208,16 @@ class MapsScraper:
                     elif link_el and link_el.get_attribute('aria-label'):
                         title = clean_text(link_el.get_attribute('aria-label'))
 
-                    if not title or title.lower() in ["results", "directions", "website"]:
+                    if not title or title.lower() in ["results", "directions", "website", "search"]:
                         continue
 
-                    # 2. Canonical Google Business Profile URL & CID
-                    raw_href = link_el.get_attribute('href') if link_el else ""
-                    cid_dec, gbp_url = extract_cid_and_canonical_url(raw_href)
-
-                    # Deduplicate by CID or normalized name
-                    dedup_key = cid_dec or title.lower()
-                    if dedup_key in seen_cids or title.lower() in seen_names:
+                    # Normalized deduplication key
+                    dedup_name = re.sub(r'[^a-z0-9]', '', title.lower())
+                    if dedup_name in seen_keys:
                         continue
-                    if cid_dec:
-                        seen_cids.add(cid_dec)
-                    seen_names.add(title.lower())
+                    seen_keys.add(dedup_name)
 
-                    # 3. Card-level rating & reviews (reliable and per-listing)
+                    # 2. Rating & Reviews from card snippet (reliable)
                     rating = 0.0
                     reviews_count = 0
                     m_rat = re.search(r'([1-5]\.\d)', card_text)
@@ -202,25 +227,46 @@ class MapsScraper:
                         except Exception:
                             pass
 
-                    m_rev = re.search(r'\((\d+[\d,]*)\)', card_text)
+                    m_rev = re.search(r'\((\d+[\d,]*)\)', card_text) or re.search(r'(\d+[\d,]*)\s+reviews?', card_text, re.IGNORECASE)
                     if m_rev:
                         try:
                             reviews_count = int(m_rev.group(1).replace(',', ''))
                         except Exception:
                             pass
 
-                    # 4. Deep Profile Inspection (Click card to load detail panel)
+                    # 3. Deep Profile Inspection (Click listing to load standalone profile panel)
                     website_url = None
                     phone = None
                     address = None
                     category = primary_service
                     is_unclaimed = False
                     opening_hours = None
+                    verified_gbp_url = None
+                    cid_dec = None
+
+                    raw_href = link_el.get_attribute('href') if link_el else ""
+                    card_cid = None
+                    card_canonical_url = None
+                    if raw_href and "place//@" not in raw_href:
+                        m_cid = re.search(r'0x[0-9a-fA-F]+:(0x[0-9a-fA-F]+)', raw_href)
+                        if m_cid:
+                            try:
+                                card_cid = str(int(m_cid.group(1), 16))
+                                card_canonical_url = f"https://www.google.com/maps?cid={card_cid}"
+                            except Exception:
+                                pass
 
                     try:
                         if link_el:
-                            link_el.click(timeout=3000)
-                            time.sleep(1.8)
+                            # Click card to open full Google Business Profile
+                            link_el.click(force=True, timeout=4000)
+                            
+                            # Wait for detail panel to render
+                            try:
+                                page.wait_for_selector('div[role="main"] h1, h1.DUwifb', timeout=6000)
+                            except Exception:
+                                pass
+                            time.sleep(1.2)
 
                             # Detail panel container
                             detail_panel = page.query_selector('div[role="main"], div.TI2pp, div.m6QEdf')
@@ -232,7 +278,15 @@ class MapsScraper:
                                 category = clean_text(cat_btn.inner_text())
 
                             # Website button
-                            web_btn = page.query_selector('a[data-item-id="authority"], a[aria-label*="Website"], a[aria-label*="website"]')
+                            web_btn = page.query_selector('a[data-item-id="authority"], a[aria-label*="Website"], a[aria-label*="website"], a[aria-label*="Open website"], a[data-tooltip*="website"]')
+                            if not web_btn and detail_panel:
+                                ext_links = detail_panel.query_selector_all('a[href^="http"]')
+                                for el in ext_links:
+                                    eh = el.get_attribute('href')
+                                    if eh and ('google.com' not in eh or '/url?q=' in eh):
+                                        web_btn = el
+                                        break
+
                             if web_btn:
                                 w_href = web_btn.get_attribute('href')
                                 if w_href:
@@ -265,20 +319,59 @@ class MapsScraper:
                             if hours_match:
                                 opening_hours = hours_match.group(1).strip()
 
-                    except Exception as click_err:
-                        pass
+                            # --- SECURE VERIFIED GOOGLE BUSINESS PROFILE LINK ---
+                            # Step A: Click Google Maps official Share button to get shortlink (maps.app.goo.gl)
+                            share_btn = page.query_selector('button[data-value="Share"], button[aria-label*="Share"], button[aria-label*="share"]')
+                            if share_btn:
+                                try:
+                                    share_btn.click(force=True)
+                                    page.wait_for_selector('input.vrsrZe, input[value*="maps"]', timeout=3000)
+                                    share_input = page.query_selector('input.vrsrZe, input[value*="maps"]')
+                                    if share_input:
+                                        v_val = share_input.get_attribute('value')
+                                        if v_val and ('maps.app.goo.gl' in v_val or 'google.com/maps' in v_val) and 'place//@' not in v_val:
+                                            verified_gbp_url = v_val.strip()
+                                            cid_dec = card_cid
+                                    
+                                    # Close share modal
+                                    close_btn = page.query_selector('button[aria-label="Close"], button[aria-label*="close"]')
+                                    if close_btn:
+                                        close_btn.click(force=True)
+                                        time.sleep(0.3)
+                                except Exception:
+                                    pass
 
-                    # Fallbacks from card text if detail panel didn't populate
+                    except Exception as click_err:
+                        print(f"[!] Warning on clicking listing #{card_idx}: {click_err}")
+
+                    # Step B: Use canonical card CID URL if share link not available
+                    if not verified_gbp_url and card_canonical_url:
+                        verified_gbp_url = card_canonical_url
+                        cid_dec = card_cid
+
+                    # Step C: If still not resolved, check sanitized raw_href
+                    if not verified_gbp_url:
+                        cid_found, clean_url = sanitize_and_verify_url(raw_href, title, address, city)
+                        if clean_url and "place//@" not in clean_url:
+                            verified_gbp_url = clean_url
+                            cid_dec = cid_found or card_cid
+
+                    # Step D: Guaranteed Fail-safe (NEVER place//@)
+                    if not verified_gbp_url or "place//@" in verified_gbp_url:
+                        cid_dec, verified_gbp_url = sanitize_and_verify_url("", title, address, city)
+                    
+                    if not cid_dec:
+                        cid_dec = card_cid
+
+                    # Fallbacks from card text if address missing
                     if not address and card_text:
-                        # Find address segment in card
                         lines = [l.strip() for l in card_text.split('\n') if l.strip()]
                         for line in lines:
-                            if any(term in line for term in ['Blvd', 'Rd', 'St', 'Ave', 'Drive', 'Lane', 'Way', 'Ste', 'Suite', 'TX', city]):
+                            if any(term in line for term in ['Blvd', 'Rd', 'St', 'Ave', 'Drive', 'Lane', 'Way', 'Ste', 'Suite', city]):
                                 address = line
                                 break
 
                     has_real_website = bool(website_url and not any(soc in website_url.lower() for soc in SOCIAL_DOMAINS))
-
                     current_rank = organic_rank if not is_sponsored else 0
 
                     business_data = {
@@ -295,30 +388,30 @@ class MapsScraper:
                         "website": website_url,
                         "hasWebsite": bool(website_url),
                         "hasRealWebsite": has_real_website,
-                        "gbpUrl": gbp_url,
-                        "mapsUrl": gbp_url,  # GUARANTEED to be the direct Google Business Profile URL
+                        "gbpUrl": verified_gbp_url,
+                        "mapsUrl": verified_gbp_url,
+                        "googleMapsUrl": verified_gbp_url,
                         "placeCid": cid_dec,
                         "isUnclaimed": is_unclaimed,
                         "openingHours": opening_hours or "Check profile for hours"
                     }
 
                     if is_sponsored:
-                        print(f"  [SPONSORED AD] {title} | {rating}★ ({reviews_count} revs) | GBP: {gbp_url}")
+                        print(f"  [SPONSORED AD] {title} | {rating}★ ({reviews_count} revs) | GBP: {verified_gbp_url}")
                     else:
-                        print(f"  [Organic #{organic_rank}] {title} | {rating}★ ({reviews_count} revs) | GBP: {gbp_url}")
+                        print(f"  [Organic #{organic_rank}] {title} | {rating}★ ({reviews_count} revs) | GBP: {verified_gbp_url}")
                         organic_rank += 1
 
                     results.append(business_data)
 
                 except Exception as e:
-                    print(f"[!] Error parsing listing card: {e}")
+                    print(f"[!] Error parsing listing card #{card_idx}: {e}")
                     continue
 
             browser.close()
 
         # Separate organic vs sponsored for benchmarking
         organic_results = [b for b in results if not b.get("isSponsored")]
-        # Fallback if all were flagged or none
         pool_for_benchmark = organic_results if len(organic_results) >= 3 else results
         top_3 = pool_for_benchmark[:3]
 

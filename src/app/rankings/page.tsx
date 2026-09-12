@@ -93,7 +93,7 @@ export default async function RankingsPage() {
 
                 <div className="flex items-center justify-between text-xs text-zinc-400 pt-2 border-t border-zinc-800">
                   <span className="font-mono">Avg: #{grid.averageRank} • Best: #{grid.bestRank}</span>
-                  <span className="text-[11px] text-zinc-500">Observed: {grid.observedAt.split('T')[0]}</span>
+                  <span className="text-[11px] text-zinc-500">Observed: {grid.observedAt?.split('T')[0] || 'Recently'}</span>
                 </div>
               </div>
             );

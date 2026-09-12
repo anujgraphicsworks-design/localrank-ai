@@ -195,8 +195,8 @@ function generateDynamicLocalDiscovery(service: string, city: string, maxResults
       state: stateCode,
       postalCode: `787${(10 + i).toString().padStart(2, '0')}`,
       country: 'USA',
-      googleMapsUrl: `https://www.google.com/maps?cid=${placeCid}`,
-      placeCid,
+      googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${bName} ${city}`)}`,
+      placeCid: undefined,
       isUnclaimed: i === 3,
       website: hasWeb ? `https://${slug}.com` : undefined,
       hasWebsite: hasWeb,
@@ -244,7 +244,12 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<{
           state: 'TX',
           postalCode: '78704',
           country: 'USA',
-          googleMapsUrl: l.gbpUrl || `https://www.google.com/maps?cid=${l.placeCid}`,
+          googleMapsUrl: (() => {
+            const u = l.googleMapsUrl || l.gbpUrl;
+            if (u && !u.includes('place//@') && !u.startsWith('@')) return u;
+            if (l.placeCid && l.placeCid.length > 5) return `https://www.google.com/maps?cid=${l.placeCid}`;
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${l.businessName} ${l.address || city}`)}`;
+          })(),
           placeCid: l.placeCid,
           isUnclaimed: Boolean(l.isUnclaimed),
           website: l.website || undefined,

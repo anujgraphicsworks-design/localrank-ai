@@ -268,7 +268,12 @@ export class WorkflowEngine {
           state: p.state || 'TX',
           postalCode: p.postalCode || '78704',
           country: p.country || 'USA',
-          googleMapsUrl: p.googleMapsUrl || (p.placeCid ? `https://www.google.com/maps?cid=${p.placeCid}` : undefined),
+          googleMapsUrl: (() => {
+            const u = p.googleMapsUrl;
+            if (u && !u.includes('place//@') && !u.startsWith('@')) return u;
+            if (p.placeCid && p.placeCid.length > 5) return `https://www.google.com/maps?cid=${p.placeCid}`;
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.businessName} ${p.address || p.city || ctx.city}`)}`;
+          })(),
           placeCid: p.placeCid,
           isUnclaimed: Boolean(p.isUnclaimed),
           phone: p.phone,
@@ -514,7 +519,12 @@ export class WorkflowEngine {
             state: b.state || 'US',
             postalCode: b.postalCode || '',
             country: b.country || 'USA',
-            googleMapsUrl: b.googleMapsUrl || (b.placeCid ? `https://www.google.com/maps?cid=${b.placeCid}` : `https://www.google.com/maps?cid=10${Date.now()}`),
+            googleMapsUrl: (() => {
+              const u = b.googleMapsUrl;
+              if (u && !u.includes('place//@') && !u.startsWith('@')) return u;
+              if (b.placeCid && b.placeCid.length > 5) return `https://www.google.com/maps?cid=${b.placeCid}`;
+              return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b.businessName} ${b.address || b.city || ctx.city}`)}`;
+            })(),
             placeCid: b.placeCid,
             isUnclaimed: Boolean(b.isUnclaimed),
             phone: b.phone,

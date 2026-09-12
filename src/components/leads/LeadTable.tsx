@@ -41,11 +41,17 @@ export function LeadTable({ leads }: LeadTableProps) {
 
   // Filter logic
   const filteredLeads = leadList.filter((lead) => {
+    const bName = (lead.businessName || '').toLowerCase();
+    const city = (lead.city || '').toLowerCase();
+    const cat = (lead.category || '').toLowerCase();
+    const email = (lead.contact?.primaryEmail || '').toLowerCase();
+    const term = (searchTerm || '').toLowerCase();
+
     const matchesSearch =
-      lead.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.contact?.primaryEmail && lead.contact.primaryEmail.toLowerCase().includes(searchTerm.toLowerCase()));
+      bName.includes(term) ||
+      city.includes(term) ||
+      cat.includes(term) ||
+      email.includes(term);
 
     if (!matchesSearch) return false;
 
@@ -290,7 +296,14 @@ export function LeadTable({ leads }: LeadTableProps) {
                         </div>
                         <div className="mt-1 flex items-center gap-2">
                           <a
-                            href={lead.googleMapsUrl || (lead.placeCid ? `https://www.google.com/maps?cid=${lead.placeCid}` : undefined)}
+                            href={
+                              (() => {
+                                const u = lead.googleMapsUrl;
+                                if (u && !u.includes('place//@') && !u.startsWith('@')) return u;
+                                if (lead.placeCid && lead.placeCid.length > 5) return `https://www.google.com/maps?cid=${lead.placeCid}`;
+                                return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lead.businessName} ${lead.address || lead.city}`)}`;
+                              })()
+                            }
                             target="_blank"
                             rel="noreferrer"
                             onClick={(e) => e.stopPropagation()}
@@ -373,7 +386,7 @@ export function LeadTable({ leads }: LeadTableProps) {
                           </span>
                         </div>
                         <div className="text-[10px] text-zinc-300 mt-0.5 truncate max-w-[120px]">
-                          {lead.actionPlan?.timelineLabel.split('(')[0] ?? '45-60 Days'}
+                          {(lead.actionPlan?.timelineLabel || (lead.actionPlan as any)?.timelineSummary || '45-60 Days').split('(')[0]}
                         </div>
                       </td>
 
