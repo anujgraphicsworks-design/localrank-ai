@@ -178,30 +178,20 @@ class MapsScraper:
 
             print(f"[*] Discovered {len(cards)} candidate cards in Google Maps search results.")
 
+            # Collect candidate listings first
+            candidates = []
             seen_keys = set()
-            organic_rank = 1
+            organic_counter = 1
 
-            for card_idx in range(len(cards)):
-                if len(results) >= max_results:
+            for c in cards:
+                if len(candidates) >= max_results:
                     break
 
                 try:
-                    # Re-query cards to prevent stale reference after DOM clicks
-                    current_cards = page.query_selector_all('div[role="feed"] div.Nv2PK')
-                    if not current_cards:
-                        current_cards = page.query_selector_all('div.Nv2PK')
-                    
-                    if card_idx >= len(current_cards):
-                        break
+                    c_text = c.inner_text()
+                    title_el = c.query_selector('div.qBF1Pd')
+                    link_el = c.query_selector('a.hfpxzc')
 
-                    card = current_cards[card_idx]
-                    card_text = card.inner_text()
-                    is_sponsored = 'Sponsored' in card_text or 'Ad' in card_text[:30]
-
-                    # 1. Business Name
-                    title_el = card.query_selector('div.qBF1Pd')
-                    link_el = card.query_selector('a.hfpxzc')
-                    
                     title = ""
                     if title_el and clean_text(title_el.inner_text()):
                         title = clean_text(title_el.inner_text())
@@ -211,203 +201,222 @@ class MapsScraper:
                     if not title or title.lower() in ["results", "directions", "website", "search"]:
                         continue
 
-                    # Normalized deduplication key
                     dedup_name = re.sub(r'[^a-z0-9]', '', title.lower())
                     if dedup_name in seen_keys:
                         continue
                     seen_keys.add(dedup_name)
 
-                    # 2. Rating & Reviews from card snippet (reliable)
-                    rating = 0.0
-                    reviews_count = 0
-                    m_rat = re.search(r'([1-5]\.\d)', card_text)
-                    if m_rat:
-                        try:
-                            rating = float(m_rat.group(1))
-                        except Exception:
-                            pass
-
-                    m_rev = re.search(r'\((\d+[\d,]*)\)', card_text) or re.search(r'(\d+[\d,]*)\s+reviews?', card_text, re.IGNORECASE)
-                    if m_rev:
-                        try:
-                            reviews_count = int(m_rev.group(1).replace(',', ''))
-                        except Exception:
-                            pass
-
-                    # 3. Deep Profile Inspection (Click listing to load standalone profile panel)
-                    website_url = None
-                    phone = None
-                    address = None
-                    category = primary_service
-                    is_unclaimed = False
-                    opening_hours = None
-                    verified_gbp_url = None
-                    cid_dec = None
-
                     raw_href = link_el.get_attribute('href') if link_el else ""
-                    card_cid = None
-                    card_canonical_url = None
-                    if raw_href and "place//@" not in raw_href:
-                        m_cid = re.search(r'0x[0-9a-fA-F]+:(0x[0-9a-fA-F]+)', raw_href)
-                        if m_cid:
-                            try:
-                                card_cid = str(int(m_cid.group(1), 16))
-                                card_canonical_url = f"https://www.google.com/maps?cid={card_cid}"
-                            except Exception:
-                                pass
+                    if not raw_href or "place//@" in raw_href:
+                        continue
 
-                    try:
-                        if link_el:
-                            # Click card to open full Google Business Profile
-                            link_el.click(force=True, timeout=4000)
-                            
-                            # Wait for detail panel to render
-                            try:
-                                page.wait_for_selector('div[role="main"] h1, h1.DUwifb', timeout=6000)
-                            except Exception:
-                                pass
-                            time.sleep(1.2)
+                    is_sponsored = 'Sponsored' in c_text or 'Ad' in c_text[:30]
+                    m_rat = re.search(r'([1-5]\.\d)', c_text)
+                    c_rating = float(m_rat.group(1)) if m_rat else 0.0
 
-                            # Detail panel container
-                            detail_panel = page.query_selector('div[role="main"], div.TI2pp, div.m6QEdf')
-                            panel_text = detail_panel.inner_text() if detail_panel else ""
+                    m_rev = re.search(r'\((\d+[\d,]*)\)', c_text) or re.search(r'(\d+[\d,]*)\s+reviews?', c_text, re.IGNORECASE)
+                    c_revs = int(m_rev.group(1).replace(',', '')) if m_rev else 0
 
-                            # Category
-                            cat_btn = page.query_selector('button[jsaction*="category"], button.DkEaL')
-                            if cat_btn and clean_text(cat_btn.inner_text()):
-                                category = clean_text(cat_btn.inner_text())
+                    assigned_rank = 0 if is_sponsored else organic_counter
+                    if not is_sponsored:
+                        organic_counter += 1
 
-                            # Website button
-                            web_btn = page.query_selector('a[data-item-id="authority"], a[aria-label*="Website"], a[aria-label*="website"], a[aria-label*="Open website"], a[data-tooltip*="website"]')
-                            if not web_btn and detail_panel:
-                                ext_links = detail_panel.query_selector_all('a[href^="http"]')
-                                for el in ext_links:
-                                    eh = el.get_attribute('href')
-                                    if eh and ('google.com' not in eh or '/url?q=' in eh):
-                                        web_btn = el
-                                        break
-
-                            if web_btn:
-                                w_href = web_btn.get_attribute('href')
-                                if w_href:
-                                    if '/url?q=' in w_href:
-                                        m = re.search(r'/url\?q=([^&]+)', w_href)
-                                        website_url = urllib.parse.unquote(m.group(1)) if m else w_href
-                                    else:
-                                        website_url = w_href
-
-                            # Phone button
-                            phone_btn = page.query_selector('button[data-item-id*="phone"], button[aria-label*="Phone"]')
-                            if phone_btn:
-                                p_txt = phone_btn.get_attribute('aria-label') or phone_btn.inner_text()
-                                p_match = re.search(r'Phone:\s*(.*)', p_txt, re.IGNORECASE)
-                                phone = p_match.group(1).strip() if p_match else clean_text(p_txt)
-
-                            # Address button
-                            addr_btn = page.query_selector('button[data-item-id="address"], button[aria-label*="Address"]')
-                            if addr_btn:
-                                a_txt = addr_btn.get_attribute('aria-label') or addr_btn.inner_text()
-                                a_match = re.search(r'Address:\s*(.*)', a_txt, re.IGNORECASE)
-                                address = a_match.group(1).strip() if a_match else clean_text(a_txt)
-
-                            # Claimed status
-                            claim_btn = page.query_selector('button[aria-label*="Claim this business"], a[href*="claim?"], button:has-text("Claim this business")')
-                            is_unclaimed = bool(claim_btn)
-
-                            # Check opening hours snippet
-                            hours_match = re.search(r'(Open 24 hours|Closed · Opens [^\n]+|Open · Closes [^\n]+)', panel_text)
-                            if hours_match:
-                                opening_hours = hours_match.group(1).strip()
-
-                            # --- SECURE VERIFIED GOOGLE BUSINESS PROFILE LINK ---
-                            # Step A: Click Google Maps official Share button to get shortlink (maps.app.goo.gl)
-                            share_btn = page.query_selector('button[data-value="Share"], button[aria-label*="Share"], button[aria-label*="share"]')
-                            if share_btn:
-                                try:
-                                    share_btn.click(force=True)
-                                    page.wait_for_selector('input.vrsrZe, input[value*="maps"]', timeout=3000)
-                                    share_input = page.query_selector('input.vrsrZe, input[value*="maps"]')
-                                    if share_input:
-                                        v_val = share_input.get_attribute('value')
-                                        if v_val and ('maps.app.goo.gl' in v_val or 'google.com/maps' in v_val) and 'place//@' not in v_val:
-                                            verified_gbp_url = v_val.strip()
-                                            cid_dec = card_cid
-                                    
-                                    # Close share modal
-                                    close_btn = page.query_selector('button[aria-label="Close"], button[aria-label*="close"]')
-                                    if close_btn:
-                                        close_btn.click(force=True)
-                                        time.sleep(0.3)
-                                except Exception:
-                                    pass
-
-                    except Exception as click_err:
-                        print(f"[!] Warning on clicking listing #{card_idx}: {click_err}")
-
-                    # Step B: Use canonical card CID URL if share link not available
-                    if not verified_gbp_url and card_canonical_url:
-                        verified_gbp_url = card_canonical_url
-                        cid_dec = card_cid
-
-                    # Step C: If still not resolved, check sanitized raw_href
-                    if not verified_gbp_url:
-                        cid_found, clean_url = sanitize_and_verify_url(raw_href, title, address, city)
-                        if clean_url and "place//@" not in clean_url:
-                            verified_gbp_url = clean_url
-                            cid_dec = cid_found or card_cid
-
-                    # Step D: Guaranteed Fail-safe (NEVER place//@)
-                    if not verified_gbp_url or "place//@" in verified_gbp_url:
-                        cid_dec, verified_gbp_url = sanitize_and_verify_url("", title, address, city)
-                    
-                    if not cid_dec:
-                        cid_dec = card_cid
-
-                    # Fallbacks from card text if address missing
-                    if not address and card_text:
-                        lines = [l.strip() for l in card_text.split('\n') if l.strip()]
-                        for line in lines:
-                            if any(term in line for term in ['Blvd', 'Rd', 'St', 'Ave', 'Drive', 'Lane', 'Way', 'Ste', 'Suite', city]):
-                                address = line
-                                break
-
-                    has_real_website = bool(website_url and not any(soc in website_url.lower() for soc in SOCIAL_DOMAINS))
-                    current_rank = organic_rank if not is_sponsored else 0
-
-                    business_data = {
-                        "currentRank": current_rank,
-                        "isSponsored": is_sponsored,
-                        "businessName": title,
-                        "rating": rating,
-                        "reviewsCount": reviews_count,
-                        "category": category or primary_service,
-                        "primaryService": primary_service,
-                        "city": city,
-                        "address": address or f"{city}",
-                        "phone": phone or "Not publicly listed",
-                        "website": website_url,
-                        "hasWebsite": bool(website_url),
-                        "hasRealWebsite": has_real_website,
-                        "gbpUrl": verified_gbp_url,
-                        "mapsUrl": verified_gbp_url,
-                        "googleMapsUrl": verified_gbp_url,
-                        "placeCid": cid_dec,
-                        "isUnclaimed": is_unclaimed,
-                        "openingHours": opening_hours or "Check profile for hours"
-                    }
-
-                    if is_sponsored:
-                        print(f"  [SPONSORED AD] {title} | {rating}★ ({reviews_count} revs) | GBP: {verified_gbp_url}")
-                    else:
-                        print(f"  [Organic #{organic_rank}] {title} | {rating}★ ({reviews_count} revs) | GBP: {verified_gbp_url}")
-                        organic_rank += 1
-
-                    results.append(business_data)
-
-                except Exception as e:
-                    print(f"[!] Error parsing listing card #{card_idx}: {e}")
+                    candidates.append({
+                        "name": title,
+                        "href": raw_href,
+                        "is_sponsored": is_sponsored,
+                        "card_text": c_text,
+                        "card_rating": c_rating,
+                        "card_revs": c_revs,
+                        "rank": assigned_rank
+                    })
+                except Exception:
                     continue
 
+            print(f"[*] Deeply inspecting {len(candidates)} Google Business Profiles one by one...")
+
+            # Deep profile inspection: Visit each business's Google Business Profile one by one
+            inspect_page = context.new_page()
+
+            for idx, cand in enumerate(candidates):
+                title = cand["name"]
+                raw_href = cand["href"]
+                is_sponsored = cand["is_sponsored"]
+                card_text = cand["card_text"]
+                rating = cand["card_rating"]
+                reviews_count = cand["card_revs"]
+                current_rank = cand["rank"]
+
+                print(f"[*] [{idx+1}/{len(candidates)}] Inspecting Google Business Profile: {title}...")
+
+                website_url = None
+                phone = None
+                address = None
+                category = primary_service
+                is_unclaimed = False
+                opening_hours = None
+                verified_gbp_url = None
+                cid_dec = None
+
+                try:
+                    inspect_page.goto(raw_href, wait_until="domcontentloaded", timeout=25000)
+                    try:
+                        inspect_page.wait_for_selector('h1.DUwDvf, h1, div[role="main"]', timeout=7000)
+                    except Exception:
+                        pass
+                    time.sleep(1.8)
+
+                    current_url = inspect_page.url
+
+                    # 1. Business Name from Profile H1
+                    h1_el = inspect_page.query_selector('h1.DUwDvf, h1')
+                    if h1_el and clean_text(h1_el.inner_text()):
+                        title = clean_text(h1_el.inner_text())
+
+                    # 2. Extract Place CID from URL
+                    m_cid = re.search(r'0x[0-9a-fA-F]+:(0x[0-9a-fA-F]+)', current_url)
+                    if m_cid:
+                        try:
+                            cid_dec = str(int(m_cid.group(1), 16))
+                        except Exception:
+                            pass
+
+                    # 3. Category from Profile
+                    cat_btn = inspect_page.query_selector('button[jsaction*="category"], button.DkEaL')
+                    if cat_btn and clean_text(cat_btn.inner_text()):
+                        category = clean_text(cat_btn.inner_text())
+
+                    # 4. Rating & Reviews from Profile
+                    rat_el = inspect_page.query_selector('span.ceNzKf, div.F7nice span[aria-hidden="true"]')
+                    if rat_el:
+                        r_txt = rat_el.get_attribute('aria-label') or rat_el.inner_text()
+                        m_r = re.search(r'([1-5]\.\d)', r_txt)
+                        if m_r:
+                            try:
+                                rating = float(m_r.group(1))
+                            except Exception:
+                                pass
+
+                    rev_el = inspect_page.query_selector('button[aria-label*="reviews"], div.F7nice')
+                    if rev_el:
+                        rv_txt = rev_el.get_attribute('aria-label') or rev_el.inner_text()
+                        m_rv = re.search(r'\((\d+[\d,]*)\)', rv_txt) or re.search(r'(\d+[\d,]*)\s+reviews?', rv_txt, re.IGNORECASE)
+                        if m_rv:
+                            try:
+                                reviews_count = int(m_rv.group(1).replace(',', ''))
+                            except Exception:
+                                pass
+
+                    # 5. Full Address from Profile
+                    addr_btn = inspect_page.query_selector('button[data-item-id="address"], button[aria-label*="Address"]')
+                    if addr_btn:
+                        a_txt = addr_btn.get_attribute('aria-label') or addr_btn.inner_text()
+                        a_txt = re.sub(r'[\ue000-\uf8ff]', '', a_txt)
+                        m_a = re.search(r'Address:\s*(.*)', a_txt, re.IGNORECASE)
+                        address = m_a.group(1).strip() if m_a else clean_text(a_txt)
+
+                    # 6. Phone Number from Profile
+                    phone_btn = inspect_page.query_selector('button[data-item-id*="phone"], button[aria-label*="Phone"]')
+                    if phone_btn:
+                        p_txt = phone_btn.get_attribute('aria-label') or phone_btn.inner_text()
+                        p_txt = re.sub(r'[\ue000-\uf8ff]', '', p_txt)
+                        m_p = re.search(r'Phone:\s*(.*)', p_txt, re.IGNORECASE)
+                        phone = m_p.group(1).strip() if m_p else clean_text(p_txt)
+
+                    # 7. Official Website from Profile
+                    web_btn = inspect_page.query_selector('a[data-item-id="authority"], a[aria-label*="Website"], a[aria-label*="website"], a[aria-label*="Open website"]')
+                    if web_btn:
+                        w_href = web_btn.get_attribute('href')
+                        if w_href:
+                            if '/url?q=' in w_href:
+                                m_w = re.search(r'/url\?q=([^&]+)', w_href)
+                                website_url = urllib.parse.unquote(m_w.group(1)) if m_w else w_href
+                            else:
+                                website_url = w_href
+
+                    # 8. Opening Hours from Profile
+                    hours_btn = inspect_page.query_selector('div[aria-label*="Hours"], button[data-item-id*="oh"], div.t39EBf')
+                    if hours_btn:
+                        h_txt = re.sub(r'[\ue000-\uf8ff]', '', hours_btn.inner_text())
+                        h_match = re.search(r'(Open 24 hours|Closed · Opens [^\n]+|Open · Closes [^\n]+|[A-Za-z]+(?:\s*\d+[:\d]*\s*(?:am|pm))?[^\n]+)', h_txt, re.IGNORECASE)
+                        opening_hours = clean_text(h_match.group(0)) if h_match else clean_text(h_txt)
+
+                    # 9. Unclaimed Status from Profile
+                    claim_btn = inspect_page.query_selector('button[aria-label*="Claim this business"], a[href*="claim?"], button:has-text("Claim this business")')
+                    is_unclaimed = bool(claim_btn)
+
+                    # 10. Click Share Button to get verified shortlink
+                    share_btn = inspect_page.query_selector('button[data-value="Share"], button[aria-label*="Share"], button[aria-label*="share"]')
+                    if share_btn:
+                        try:
+                            share_btn.click()
+                            time.sleep(0.8)
+                            share_input = inspect_page.query_selector('input.vrsrZe, input[value*="maps"]')
+                            if share_input:
+                                v_val = share_input.get_attribute('value')
+                                if v_val and ('maps.app.goo.gl' in v_val or 'google.com/maps' in v_val) and 'place//@' not in v_val:
+                                    verified_gbp_url = v_val.strip()
+                            close_btn = inspect_page.query_selector('button[aria-label="Close"], button[aria-label*="close"]')
+                            if close_btn:
+                                close_btn.click()
+                        except Exception:
+                            pass
+
+                except Exception as inspect_err:
+                    print(f"[!] Warning inspecting profile {title}: {inspect_err}")
+
+                # Establish verified canonical link
+                if not verified_gbp_url:
+                    if cid_dec:
+                        verified_gbp_url = f"https://www.google.com/maps?cid={cid_dec}"
+                    else:
+                        cid_found, clean_url = sanitize_and_verify_url(raw_href, title, address, city)
+                        verified_gbp_url = clean_url
+                        cid_dec = cid_found
+
+                if not verified_gbp_url or "place//@" in verified_gbp_url:
+                    cid_dec, verified_gbp_url = sanitize_and_verify_url("", title, address, city)
+
+                # Address fallback if not explicitly found in profile
+                if not address and card_text:
+                    lines = [l.strip() for l in card_text.split('\n') if l.strip()]
+                    for line in lines:
+                        if any(term in line for term in ['Blvd', 'Rd', 'St', 'Ave', 'Drive', 'Lane', 'Way', 'Ste', 'Suite', city]):
+                            address = line
+                            break
+
+                has_real_website = bool(website_url and not any(soc in website_url.lower() for soc in SOCIAL_DOMAINS))
+
+                business_data = {
+                    "currentRank": current_rank,
+                    "isSponsored": is_sponsored,
+                    "businessName": title,
+                    "rating": rating,
+                    "reviewsCount": reviews_count,
+                    "category": category or primary_service,
+                    "primaryService": primary_service,
+                    "city": city,
+                    "address": address or f"{city}",
+                    "phone": phone or "Not publicly listed",
+                    "website": website_url,
+                    "hasWebsite": bool(website_url),
+                    "hasRealWebsite": has_real_website,
+                    "gbpUrl": verified_gbp_url,
+                    "mapsUrl": verified_gbp_url,
+                    "googleMapsUrl": verified_gbp_url,
+                    "placeCid": cid_dec,
+                    "isUnclaimed": is_unclaimed,
+                    "openingHours": opening_hours or "Check profile for hours"
+                }
+
+                if is_sponsored:
+                    print(f"  [SPONSORED AD] {title} | {rating}★ ({reviews_count} revs) | Phone: {phone} | GBP: {verified_gbp_url}")
+                else:
+                    print(f"  [Organic #{current_rank}] {title} | {rating}★ ({reviews_count} revs) | Phone: {phone} | GBP: {verified_gbp_url}")
+
+                results.append(business_data)
+
+            inspect_page.close()
             browser.close()
 
         # Separate organic vs sponsored for benchmarking
