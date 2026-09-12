@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { BusinessLead, Workflow, WorkflowExecution, IntegrationSettings } from '../types';
 import { INITIAL_LEADS, INITIAL_WORKFLOWS, INITIAL_EXECUTIONS, INITIAL_SETTINGS } from '../firebase/mockStore';
+import { ensureLeadComplete } from '../providers/normalizeLead';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 
@@ -43,7 +44,8 @@ function writeJson<T>(filename: string, data: T): void {
 
 export const serverStorage = {
   getLeads(workspaceId?: string): BusinessLead[] {
-    const leads = readJson<BusinessLead[]>('leads.json', INITIAL_LEADS);
+    const rawLeads = readJson<BusinessLead[]>('leads.json', INITIAL_LEADS);
+    const leads = rawLeads.map(ensureLeadComplete);
     if (!workspaceId) return leads;
     return leads.filter((l) => l.workspaceId === workspaceId);
   },

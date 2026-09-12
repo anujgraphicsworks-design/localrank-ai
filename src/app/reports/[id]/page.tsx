@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getLeadById } from '@/lib/firebase/db';
 import { BusinessLead } from '@/lib/types';
+import { ensureLeadComplete } from '@/lib/providers/normalizeLead';
 import {
   Printer,
   Compass,
@@ -20,18 +21,79 @@ import {
 export default function ClientReportPage() {
   const params = useParams();
   const id = params?.id as string;
-  const [lead, setLead] = useState<BusinessLead | null>(null);
+  const [rawLead, setRawLead] = useState<BusinessLead | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      getLeadById(id).then(setLead);
+    let isMounted = true;
+    async function fetchLead() {
+      if (!id) return;
+      setLoading(true);
+
+      try {
+        const fetched = await getLeadById(id);
+        if (fetched && isMounted) {
+          setRawLead(fetched);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Direct Firestore fetch error, falling back:', err);
+      }
+
+      // Fallback to /api/leads
+      try {
+        const res = await fetch('/api/leads');
+        if (res.ok) {
+          const data = await res.json();
+          const leads: BusinessLead[] = Array.isArray(data) ? data : (data.leads || []);
+          const found = leads.find(
+            (l) =>
+              l.id === id ||
+              l.id === decodeURIComponent(id) ||
+              l.businessName.toLowerCase() === decodeURIComponent(id).toLowerCase()
+          );
+          if (found && isMounted) {
+            setRawLead(found);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Fallback /api/leads fetch error:', err);
+      }
+
+      if (isMounted) {
+        setLoading(false);
+      }
     }
+
+    fetchLead();
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
-  if (!lead) {
+  const lead = rawLead ? ensureLeadComplete(rawLead) : null;
+
+  if (loading) {
     return (
       <div className="p-12 text-center text-zinc-500 text-xs font-mono">
         Loading client audit report...
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="p-12 text-center text-zinc-500 text-xs font-mono space-y-3">
+        <div>Lead not found or report unavailable for ID: {id}</div>
+        <a
+          href="/leads"
+          className="inline-block px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors"
+        >
+          Return to Leads
+        </a>
       </div>
     );
   }
@@ -202,8 +264,8 @@ export default function ClientReportPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {comp.top3Competitors.map((c) => (
-                <div key={c.id} className="p-4 rounded-xl bg-zinc-950 print:bg-gray-50 border border-zinc-800 print:border-gray-200 space-y-2 text-xs">
+              {(comp?.top3Competitors || []).map((c, idx) => (
+                <div key={c.id || idx} className="p-4 rounded-xl bg-zinc-950 print:bg-gray-50 border border-zinc-800 print:border-gray-200 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-emerald-400 print:text-emerald-800">#{c.rank} 3-Pack Leader</span>
                     <span className="text-zinc-400 print:text-gray-600">{c.reviewsCount} reviews</span>
@@ -226,14 +288,14 @@ export default function ClientReportPage() {
             </div>
 
             <div className="space-y-3">
-              {plan.phases.map((ph) => (
-                <div key={ph.phase} className="p-4 rounded-xl bg-zinc-950 print:bg-gray-50 border border-zinc-800 print:border-gray-200 space-y-2 text-xs">
+              {(plan?.phases || []).map((ph, pIdx) => (
+                <div key={ph.phase || pIdx} className="p-4 rounded-xl bg-zinc-950 print:bg-gray-50 border border-zinc-800 print:border-gray-200 space-y-2 text-xs">
                   <div className="flex items-center justify-between font-bold text-emerald-400 print:text-emerald-800">
                     <span>{ph.name}</span>
                     <span className="font-mono text-zinc-400 print:text-gray-600">{ph.daysRange}</span>
                   </div>
                   <div className="space-y-1.5 pt-1">
-                    {ph.tasks.map((t, idx) => (
+                    {(ph.tasks || []).map((t, idx) => (
                       <div key={idx} className="flex items-start gap-2 text-[11px] text-zinc-300 print:text-gray-800">
                         <span className="font-mono font-bold px-1.5 py-0.2 rounded bg-zinc-800 print:bg-gray-200 text-zinc-300 print:text-gray-800 shrink-0">
                           {t.priority}

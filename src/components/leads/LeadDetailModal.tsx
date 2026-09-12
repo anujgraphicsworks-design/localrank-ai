@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   Compass,
@@ -24,6 +24,7 @@ import {
 import { InstagramIcon, FacebookIcon, LinkedinIcon } from '@/components/ui/SocialIcons';
 import { BusinessLead } from '@/lib/types';
 import { deleteLead } from '@/lib/firebase/db';
+import { ensureLeadComplete } from '@/lib/providers/normalizeLead';
 
 interface LeadDetailModalProps {
   lead: BusinessLead | null;
@@ -32,7 +33,8 @@ interface LeadDetailModalProps {
   onDeleteLead?: (id: string) => Promise<void> | void;
 }
 
-export function LeadDetailModal({ lead, isOpen, onClose, onDeleteLead }: LeadDetailModalProps) {
+export function LeadDetailModal({ lead: initialLead, isOpen, onClose, onDeleteLead }: LeadDetailModalProps) {
+  const lead = useMemo(() => initialLead ? ensureLeadComplete(initialLead) : null, [initialLead]);
   const [activeTab, setActiveTab] = useState<
     'overview' | 'grid' | 'competitors' | 'gbp' | 'website' | 'gaps' | 'timeline' | 'actionPlan' | 'contact' | 'evidence' | 'email'
   >('overview');
@@ -452,7 +454,56 @@ export function LeadDetailModal({ lead, isOpen, onClose, onDeleteLead }: LeadDet
             </div>
           )}
 
-          {/* TAB 6: OPPORTUNITY & TIMELINE */}
+          {/* TAB 6: SEO GAPS */}
+          {activeTab === 'gaps' && (
+            <div className="space-y-5">
+              <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800 space-y-3">
+                <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Identified Local SEO Gaps</h3>
+                <p className="text-xs text-zinc-400">
+                  Critical ranking and conversion deficits keeping {lead.businessName} outside the high-converting Google 3-Pack.
+                </p>
+                <div className="space-y-2.5 pt-1">
+                  {(lead.whatLacks && lead.whatLacks.length > 0 ? lead.whatLacks : [
+                    `Rank Deficit: Sitting at #${lead.currentRank} on Google Maps — outside Google's high-converting 3-Pack.`,
+                    `Review Volume Gap: Trails Top 3 competitors by ~${lead.competitorComparison?.reviewDeltaToTop3Avg || 50} customer reviews.`,
+                    `Local Schema Deficit: Lacks verified LocalBusiness schema & geo-coordinates on official domain.`,
+                    `Inbound Lead Capture: Missing automated 60-second follow-up workflows for inbound calls.`
+                  ]).map((gap, i) => (
+                    <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg bg-zinc-950/60 border border-zinc-800 text-xs text-zinc-300">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span>{gap}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {lead.competitorComparison && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800 space-y-2">
+                    <h4 className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Review Gap to Top 3</h4>
+                    <div className="text-xl font-bold font-mono text-zinc-100">
+                      +{lead.competitorComparison.reviewDeltaToTop3Avg} Reviews Needed
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Top 3 competitors average {lead.competitorComparison.top3Competitors[0]?.reviewsCount || 150}+ verified customer reviews.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800 space-y-2">
+                    <h4 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Star Rating Gap</h4>
+                    <div className="text-xl font-bold font-mono text-zinc-100">
+                      {lead.rating}★ vs Top 3 Benchmark
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Maintaining a 4.7★+ rating threshold is critical for local 3-pack prominence in {lead.city}.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 7: OPPORTUNITY & TIMELINE */}
           {activeTab === 'timeline' && lead.opportunityScore && (
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
